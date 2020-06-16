@@ -11,6 +11,7 @@ import pandas as pd
 import matplotlib.patches as patches
 from matplotlib import pyplot as plt
 from skimage import io
+from skimage.filters import gaussian
 from skimage.feature import peak_local_max
 from skimage.transform import AffineTransform, warp
 from skimage.util import pad
@@ -326,7 +327,7 @@ class KSpaceImage(object):
         else:
             raise ValueError('Read the image data first!')
 
-    def centre_image(self, roi = (0,10,0,10), centre = (1,1), min_distance = 10, threshold_abs = 0, num_peaks = 1, npixels_pad = 2000, zoom = 1, estimate_only = True):
+    def centre_image(self, roi = (0,10,0,10), centre = (1,1), gaussian_filter = False, sigma = 1, min_distance = 10, threshold_abs = 0, num_peaks = 1, npixels_pad = 2000, zoom = 1, estimate_only = True):
         """
         Centers the Fourier-domain image whose centre is located at one of its local maxima
         Completes zero-padding of the original image to a specified linear number of pixels
@@ -340,6 +341,12 @@ class KSpaceImage(object):
         centre: tuple, optional
             Centre of the image.
             Default is (1,1), which must be changed by user once the centre of the image (one of the local maxima) is found.
+        gaussian_filter : bool, optional
+            Apply Gaussian filter to filter noise
+            Default is False
+        sigma : float, optional
+            Standard deviation of a Gaussian filter
+            Defailt is 1.0
         min_distance, int, optional
             Minimal distance between the local maxima
             Must be tuned by user to make the search most effective.
@@ -371,11 +378,17 @@ class KSpaceImage(object):
                     self.image = self.image.to_numpy()
                 else:
                     pass
+                #apply Gaussian filter
+                if gaussian_filter is True:
+                    image_filtered = gaussian(deepcopy(self.image),
+                                              sigma = sigma)
+                else:
+                    image_filtered = deepcopy(self.image)
                 #
                 # set ROI and find local maxima
                 mask = np.zeros(self.image.shape)
                 mask[roi[1]:roi[3], roi[0]:roi[2]] = 1
-                im_masked = self.image * mask
+                im_masked = image_filtered * mask
                 local_max_coordinates = peak_local_max(im_masked,
                                              min_distance = min_distance,
                                              threshold_abs = threshold_abs,
@@ -427,7 +440,7 @@ class KSpaceImage(object):
                     print("Input image was padded to ", im_centred.shape[0], "X", im_centred.shape[1],"pixels.")
                     self.metadata['Linear number of pixels in the zero-padded real-space image'] = npixels_pad
                     #
-                    # pülot centred image
+                    # plot centred image
                     fig1, ax1 = plt.subplots(1)
                     plt.imshow(im_centred)
                     ax1.plot(centre[1]-centroid[1],
