@@ -54,8 +54,7 @@ class KSpaceImage(object):
         self.metadata = KSpaceMetadata()
         self.metadata['Background subtracted?'] = None
         self.metadata['Image centred and padded?'] = None
-        self.metadata['Pixel size Fourier domain, nm'] = None
-        self.metadata['Linear number of pixels in the zero-padded Fourier-space image'] = None
+        self.metadata["Parseval's theorem fulfilled?"] = None
         #
         if self.image is None and filename is not None and delimiter is not None and os.path.exists(filename):
             # then read data from file

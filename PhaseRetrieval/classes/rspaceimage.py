@@ -61,7 +61,7 @@ class RSpaceImage(object):
         self.metadata['Field of view, deg'] = None
         self.metadata['Number of pixels within the field of view'] = None
         self.metadata['Linear size of the object, m'] = None
-        self.metadata['Pixel size object domain, nm'] = None
+        self.metadata['Pixel size object domain, m'] = None
         self.metadata['Linear number of pixels in the zero-padded real-space image'] = None
         self.metadata['Image centred and padded?'] = None
         self.metadata['Apodization filter applied?'] = None
@@ -347,7 +347,7 @@ class RSpaceImage(object):
                     #
                     # find out physical linear pixel size
                     pixelsize_dr0 = round(1e3 * np.sqrt(linear_object_size**2 / np.count_nonzero(im_watershed_pad)), 0)
-                    self.metadata['Pixel size object domain, nm'] = pixelsize_dr0
+                    self.metadata['Pixel size object domain, m'] = pixelsize_dr0
                     #
                     # centre object's distribution
                     # (with or without the application of the apodization filter)
@@ -390,7 +390,7 @@ class RSpaceImage(object):
                         plt.colorbar()
                         plt.show()
                     self.metadata['Image centred and padded?'] = 'yes'
-                    self.metadata['Linear size of the object, m'] = linear_object_size
+                    self.metadata['Linear size of the object, m'] = linear_object_size * 1e-6
                     #
                 else:
                     raise ValueError('Specified number of pixels for zero-padding is too low!')
@@ -466,7 +466,7 @@ class RSpaceImage(object):
         else:
             raise ValueError('Read the image data and centre it first!')
 
-    def resample_image(self, fieldofview = 17, npixels_kspace = 500, pixelsize_dr0 = None, lambd = 880, estimate_only = True):
+    def resample_image(self, fieldofview = 17, npixels_kspace = 500, pixelsize_dr0 = None, lambd = 880e-9, estimate_only = True):
         """
         Resamples object-space image to equalise its pixel size to the one set by
         digital Fourier transform and the pixel size in the experimental Fourier-space image
@@ -482,14 +482,14 @@ class RSpaceImage(object):
             (= corresponds to the linear number of pixels within the 1/2 of field of view)
             Default is 500
         pixelsize_dr0: int, optional
-            Pixel size in experimental object-domain image, in nm.
+            Pixel size in experimental object-domain image, in m.
             If it is None, the value will be read from metadata (saved to metadata after centering and segmentation of the image).
             If the value in metadata is None, there will be an error message.
             Alternatively, one can set the pixel size manually.
             Default is None.
         lambd: float, optional
-            Wavelength of light, in nm
-            Default is 880
+            Wavelength of light, in m
+            Default is 880e-9
         estimate_only: bool, optional
             False will irreversibly resample the input image.
             True will only estimate the downsampling ratio.
@@ -499,21 +499,20 @@ class RSpaceImage(object):
             if self.metadata['Image centred and padded?'] == 'yes':
                 # read out pixel size in object domain
                 if pixelsize_dr0 is None:
-                    if self.metadata['Pixel size object domain, nm'] is not None:
+                    if self.metadata['Pixel size object domain, m'] is not None:
                     # if none, read from metadata of it's not none
-                        pixelsize_dr0 = 1e-9 * self.metadata['Pixel size object domain, nm']
+                        pixelsize_dr0 = self.metadata['Pixel size object domain, m']
                     else:
                         raise ValueError('Pixel size object domain is None! Either specify the pixel size manually or determine it via centre_image method!')
                 else:
                     #if not none save the pixel size in metadata and convert ot nm
-                    self.metadata['Pixel size object domain, nm'] = pixelsize_dr0
-                    pixelsize_dr0 = 1e-9 * pixelsize_dr0
+                    self.metadata['Pixel size object domain, m'] = pixelsize_dr0
                 #
                 npixels_pad = self.metadata['Linear number of pixels in the zero-padded real-space image']
                 alpha = fieldofview * np.pi / 180
                 #
                 # compute pixel size in Fourier domain
-                pixelsize_dk = (np.sin(alpha) * 2 * np.pi / (lambd*1e-9)) / npixels_kspace
+                pixelsize_dk = (np.sin(alpha) * 2 * np.pi / lambd) / npixels_kspace
                 self.metadata['Pixel size Fourier domain, 1/nm'] = pixelsize_dk * 1e9
                 #
                 # compute pixel size in the object domain
