@@ -576,9 +576,11 @@ class RSpaceImage(object):
                 # save the image
                 io.imsave(os.path.join(pathtosave, outputfilename), imagetosave.astype(np.float32))
                 # save its metadata
-                self.metadata.to_csv(os.path.join(pathtosave, outputfilename[:-4] + '_meta.csv'), sep='\t', header=False)
+                self.metadata.to_csv(os.path.join(pathtosave, outputfilename[:-4] + '.csv'), sep='\t', header=False)
                 self.filename = outputfilename
-                print('The image was saved in tif file. Its metadata was saved in csv file.')
+                print('The image was saved in tif file under ', os.path.join(pathtosave, outputfilename))
+                print()
+                print('Its metadata was saved in csv file under ', os.path.join(pathtosave, outputfilename[:-4] + '.csv'))
             else:
                 raise ValueError('Invalid path! Please specify a valid path to save data as tif file.')
         else:
