@@ -57,11 +57,15 @@ class RSpaceImage(object):
         self.image_apodization_filter = image_apodization_filter
         #
         self.metadata = RSpaceMetadata()
-        self.metadata['Apodization filter applied?'] = None
-        self.metadata['Image centred and padded?'] = None
-        self.metadata['Linear number of pixels in the zero-padded real-space image'] = None
-        self.metadata["Parseval's theorem fulfilled?"] = None
+        self.metadata['Wavelength of light, m'] = None
+        self.metadata['Field of view, deg'] = None
+        self.metadata['Number of pixels within the field of view'] = None
+        self.metadata['Linear size of the object, m'] = None
         self.metadata['Pixel size object domain, nm'] = None
+        self.metadata['Linear number of pixels in the zero-padded real-space image'] = None
+        self.metadata['Image centred and padded?'] = None
+        self.metadata['Apodization filter applied?'] = None
+        self.metadata["Parseval's theorem fulfilled?"] = None
         #
         if self.image is None and filename is not None and delimiter is not None and os.path.exists(filename):
             # then read data from file
@@ -386,6 +390,7 @@ class RSpaceImage(object):
                         plt.colorbar()
                         plt.show()
                     self.metadata['Image centred and padded?'] = 'yes'
+                    self.metadata['Linear size of the object, m'] = linear_object_size
                     #
                 else:
                     raise ValueError('Specified number of pixels for zero-padding is too low!')
@@ -538,6 +543,9 @@ class RSpaceImage(object):
                 elif estimate_only == True:
                     print('estimating the downsampling ratio...')
                     print('Downsampling ratio =', downsampling)
+                self.metadata['Wavelength of light, m'] = lambd
+                self.metadata['Field of view, deg'] = fieldofview
+                self.metadata['Number of pixels within the field of view'] = npixels_kspace
             else:
                 raise ValueError('Centre and zero-pad image distribution!')
         else:
