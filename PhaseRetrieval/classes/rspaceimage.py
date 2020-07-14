@@ -276,7 +276,7 @@ class RSpaceImage(object):
         else:
             raise ValueError('Read the image data first!')
 
-    def centre_image_watershed(self, linear_object_size=100, npixels_pad=2000, apodization=False):
+    def centre_image_watershed(self, linear_object_size=100, npixels_pad=2000, apodization=False, plot_progress = False):
         """
         Centers the object-domain image using watershed algorithm (the existence of only a single blob is assumed).
         Finds its physical linear pixel size.
@@ -297,6 +297,9 @@ class RSpaceImage(object):
             with standard deviation = 1 and truncation of the filter's boundaries to 2
             (fixed at the moment, but may/should be changed in the future)
             Default is False
+        plot_progress: bool, optional
+            Plot images.
+            Default is False
         """
         if self.image is not None:
             if linear_object_size is not None and npixels_pad is not None:
@@ -308,16 +311,19 @@ class RSpaceImage(object):
                     else:
                         pass
                     #
-                    plt.imshow(self.image)
-                    plt.title('self.image')
-                    plt.colorbar()
-                    plt.show()
+                    if plot_progress is True:
+                        plt.imshow(self.image)
+                        plt.title('self.image')
+                        plt.colorbar()
+                        plt.show()
                     # compute Euclidean distance transform
                     im_distance = ndi.distance_transform_edt(self.image)
-                    plt.imshow(im_distance)
-                    plt.title('Output of the distance transform algorithm')
-                    plt.colorbar()
-                    plt.show()
+                    #
+                    if plot_progress is True:
+                        plt.imshow(im_distance)
+                        plt.title('Output of the distance transform algorithm')
+                        plt.colorbar()
+                        plt.show()
                     #
                     # find local maximum (only 1 in this case)
                     im_local_maxi = feature.peak_local_max(im_distance,
@@ -328,10 +334,12 @@ class RSpaceImage(object):
                     im_watershed = 1 * watershed(-im_distance,
                                                  markers=im_local_maxi,
                                                  mask=self.image)
-                    plt.imshow(im_watershed)
-                    plt.title('Output of the watershed algorithm')
-                    plt.colorbar()
-                    plt.show()
+                    #
+                    if plot_progress is True:
+                        plt.imshow(im_watershed)
+                        plt.title('Output of the watershed algorithm')
+                        plt.colorbar()
+                        plt.show()
                     #
                     #now pad original image and watershed image
                     im_pad = pad(self.image,
@@ -342,10 +350,12 @@ class RSpaceImage(object):
                                            ((0, npixels_pad - self.image.shape[0]),
                                            (0, npixels_pad - self.image.shape[1])),
                                            mode='constant')
-                    plt.imshow(im_watershed_pad)
-                    plt.title('Output of the watershed algorithm - padded')
-                    plt.colorbar()
-                    plt.show()
+                    #
+                    if plot_progress is True:
+                        plt.imshow(im_watershed_pad)
+                        plt.title('Output of the watershed algorithm - padded')
+                        plt.colorbar()
+                        plt.show()
                     print("Input and watershed images have been padded to ", im_pad.shape[0], "X", im_pad.shape[1], "pixels.")
                     self.metadata['Linear number of pixels in the zero-padded real-space image']= npixels_pad
                     #
@@ -367,10 +377,12 @@ class RSpaceImage(object):
                                           preserve_range=True)
                         print('Centred.\nApodization filter has NOT been applied.\nLinear pixel size is ', pixelsize_dr0, "nm")
                         self.metadata['Apodization filter applied?'] = 'no'
-                        plt.imshow(self.image)
-                        plt.title('Centred image')
-                        plt.colorbar()
-                        plt.show()
+                        #
+                        if plot_progress is True:
+                            plt.imshow(self.image)
+                            plt.title('Centred image')
+                            plt.colorbar()
+                            plt.show()
                     else:
                         # compute apodization filter
                         image_apodization_filter = warp(im_watershed_pad,
@@ -383,10 +395,12 @@ class RSpaceImage(object):
                                                             truncate=2.0)
                         image_apodization_filter = image_apodization_filter / np.max(np.max(image_apodization_filter))
                         self.image_apodization_filter = image_apodization_filter
-                        plt.imshow(image_apodization_filter)
-                        plt.title('Apodization filter')
-                        plt.colorbar()
-                        plt.show()
+                        #
+                        if plot_progress is True:
+                            plt.imshow(image_apodization_filter)
+                            plt.title('Apodization filter')
+                            plt.colorbar()
+                            plt.show()
                         #
                         self.image = image_apodization_filter * warp(im_pad,
                                                                               AffineTransform(translation=im_centroid),
@@ -394,10 +408,12 @@ class RSpaceImage(object):
                                                                               preserve_range=True)
                         print("Centred.\nApodization filter has been applied.\nLinear pixel size is ", pixelsize_dr0, "nm")
                         self.metadata['Apodization filter applied?'] = 'yes'
-                        plt.imshow(self.image)
-                        plt.title('Centred and apodized image')
-                        plt.colorbar()
-                        plt.show()
+                        #
+                        if plot_progress is True:
+                            plt.imshow(self.image)
+                            plt.title('Centred and apodized image')
+                            plt.colorbar()
+                            plt.show()
                     self.metadata['Image centred and padded?'] = 'yes'
                     self.metadata['Linear size of the object, m'] = linear_object_size * 1e-6
                     #
@@ -409,7 +425,7 @@ class RSpaceImage(object):
         else:
             raise ValueError('Read the image data first!')
 
-    def subtract_background(self, counts = 0, zoom = 1, log_scale = False, estimate_only = True):
+    def subtract_background(self, counts = 0, zoom = 1, log_scale = False, estimate_only = True, plot_progress = False):
         """
         Subtracts constant background given a number of counts
 
@@ -430,6 +446,9 @@ class RSpaceImage(object):
             False will irreversibly subtract the background from the input image.
             True will only estimate how the image will look like after the background subtraction.
             Default is True.
+        plot_progress: bool, optional
+            Plot background-free image for estimate_only = False.
+            Default is False
         """
         if self.image is not None:
             im_bgfree = self.image
@@ -458,19 +477,20 @@ class RSpaceImage(object):
                 self.image = im_bgfree
                 self.metadata['Background subtracted?'] = 'yes'
                 #
-                if log_scale == True:
-                    plt.imshow(np.log(self.image))
-                    print('Plotted in log scale')
-                else:
-                    plt.imshow(self.image)
-                plt.axis([im_bgfree.shape[0] // 2 - im_bgfree.shape[0] // 2 // zoom,
-                          im_bgfree.shape[0] // 2 + im_bgfree.shape[0] // 2 // zoom,
-                          im_bgfree.shape[1] // 2 - im_bgfree.shape[1] // 2 // zoom,
-                          im_bgfree.shape[1] // 2 + im_bgfree.shape[1] // 2 // zoom])
-                plt.gca().invert_yaxis()
-                plt.title("Image after the background subtraction.")
-                plt.colorbar()
-                plt.show()
+                if plot_progress is True:
+                    if log_scale == True:
+                        plt.imshow(np.log(self.image))
+                        print('Plotted in log scale')
+                    else:
+                        plt.imshow(self.image)
+                    plt.axis([im_bgfree.shape[0] // 2 - im_bgfree.shape[0] // 2 // zoom,
+                              im_bgfree.shape[0] // 2 + im_bgfree.shape[0] // 2 // zoom,
+                              im_bgfree.shape[1] // 2 - im_bgfree.shape[1] // 2 // zoom,
+                              im_bgfree.shape[1] // 2 + im_bgfree.shape[1] // 2 // zoom])
+                    plt.gca().invert_yaxis()
+                    plt.title("Image after the background subtraction.")
+                    plt.colorbar()
+                    plt.show()
                 print("Background of", counts, "counts has been subtracted.")
         else:
             raise ValueError('Read the image data and centre it first!')

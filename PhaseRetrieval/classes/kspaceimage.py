@@ -140,7 +140,7 @@ class KSpaceImage(object):
         else:
             raise ValueError('Read the image data first!')
 
-    def rotate_image(self, times_rot=1, axes=(0, 1), zoom = 1, estimate_only = True):
+    def rotate_image(self, times_rot=1, axes=(0, 1), zoom = 1, estimate_only = True,  plot_progress = False):
         """
         Rotates the image by 90°.
 
@@ -161,6 +161,9 @@ class KSpaceImage(object):
                 False will irreversibly rotate the input image.
                 True will only estimate how the image will look like after the rotation.
                 Default is True.
+            plot_progress: bool, optional
+                Plot original and rotated images for estimate_only = False.
+                Default is False
         """
         if self.image is not None:
             if estimate_only is True:
@@ -183,30 +186,34 @@ class KSpaceImage(object):
                 print("This is how the image looks like if rotated.")
             elif estimate_only is False:
                 #
-                fig, ax = plt.subplots(ncols=2, figsize=(10, 4))
-                ax1, ax2 = ax
-                im1 = ax1.imshow(self.image)
-                ax1.set_title("Original")
-                #ax1.invert_yaxis()
-                plt.colorbar(im1,ax=ax1)
-                #
-                self.image = np.rot90(self.image, times_rot, axes)
+                rotated = np.rot90(self.image, times_rot, axes)
                 print("Input image was rotated")
                 #
-                im2 =ax2.imshow(self.image)
-                ax2.set_title("Rotated")
-                plt.colorbar(im2,ax=ax2)
-                plt.axis([self.image.shape[0] // 2 - self.image.shape[0] // 2 // zoom,
-                          self.image.shape[0] // 2 + self.image.shape[0] // 2 // zoom,
-                          self.image.shape[1] // 2 - self.image.shape[1] // 2 // zoom,
-                          self.image.shape[1] // 2 + self.image.shape[1] // 2 // zoom])
-                ax2.invert_yaxis()
-                plt.show()
+                if plot_progress is True:
+                    #
+                    fig, ax = plt.subplots(ncols=2, figsize=(10, 4))
+                    ax1, ax2 = ax
+                    im1 = ax1.imshow(self.image)
+                    ax1.set_title("Original")
+                    #ax1.invert_yaxis()
+                    plt.colorbar(im1,ax=ax1)
+                    #
+                    im2 =ax2.imshow(rotated)
+                    ax2.set_title("Rotated")
+                    plt.colorbar(im2,ax=ax2)
+                    plt.axis([self.image.shape[0] // 2 - self.image.shape[0] // 2 // zoom,
+                              self.image.shape[0] // 2 + self.image.shape[0] // 2 // zoom,
+                              self.image.shape[1] // 2 - self.image.shape[1] // 2 // zoom,
+                              self.image.shape[1] // 2 + self.image.shape[1] // 2 // zoom])
+                    ax2.invert_yaxis()
+                    plt.show()
+                #
+                self.image = rotated
                 #
         else:
             raise ValueError('Read the image data first!')
 
-    def flip_image(self, axis=0, zoom = 1, estimate_only = True):
+    def flip_image(self, axis=0, zoom = 1, estimate_only = True, plot_progress = False):
         """
         Flips the image along its vertical or horizontal axes.
 
@@ -228,6 +235,9 @@ class KSpaceImage(object):
             False will irreversibly flip the input image.
             True will only estimate how the image will look like after the flipping.
             Default is True.
+        plot_progress: bool, optional
+            Plot original and flipped images for estimate_only = False.
+            Default is False
         """
         if self.image is not None:
             if estimate_only == True:
@@ -253,31 +263,36 @@ class KSpaceImage(object):
                           self.image.shape[1] // 2 + self.image.shape[1] // 2 // zoom])
                 ax2.invert_yaxis()
                 plt.show()
+            #
             elif estimate_only == False:
-                #
-                fig, ax = plt.subplots(ncols=2, figsize=(10, 4))
-                ax1, ax2 = ax
-                im1 = ax1.imshow(self.image)
-                ax1.set_title("Original")
-                plt.colorbar(im1,ax=ax1)
                 #
                 if axis == 0:
                     # flip upside-down
-                    self.image = np.flipud(self.image)
+                    flipped = np.flipud(self.image)
                 elif axis == 1:
                     # flip left-right
-                    self.image = np.fliplr(self.image)
+                    flipped = np.fliplr(self.image)
                 print("Input image was flipped")
                 #
-                im2 = ax2.imshow(self.image)
-                ax2.set_title("Flipped")
-                plt.axis([self.image.shape[0] // 2 - self.image.shape[0] // 2 // zoom,
-                          self.image.shape[0] // 2 + self.image.shape[0] // 2 // zoom,
-                          self.image.shape[1] // 2 - self.image.shape[1] // 2 // zoom,
-                          self.image.shape[1] // 2 + self.image.shape[1] // 2 // zoom])
-                ax2.invert_yaxis()
-                plt.colorbar(im2,ax=ax2)
-                plt.show()
+                if plot_progress is True:
+                    #
+                    fig, ax = plt.subplots(ncols=2, figsize=(10, 4))
+                    ax1, ax2 = ax
+                    im1 = ax1.imshow(self.image)
+                    ax1.set_title("Original")
+                    plt.colorbar(im1,ax=ax1)
+                    #
+                    im2 = ax2.imshow(flipped)
+                    ax2.set_title("Flipped")
+                    plt.axis([self.image.shape[0] // 2 - self.image.shape[0] // 2 // zoom,
+                              self.image.shape[0] // 2 + self.image.shape[0] // 2 // zoom,
+                              self.image.shape[1] // 2 - self.image.shape[1] // 2 // zoom,
+                              self.image.shape[1] // 2 + self.image.shape[1] // 2 // zoom])
+                    ax2.invert_yaxis()
+                    plt.colorbar(im2,ax=ax2)
+                    plt.show()
+                #
+                self.image = flipped
         else:
             raise ValueError('Read the image data first!')
 
@@ -326,7 +341,8 @@ class KSpaceImage(object):
         else:
             raise ValueError('Read the image data first!')
 
-    def centre_image(self, roi = (0,10,0,10), centre = (1,1), gaussian_filter = False, sigma = 1, min_distance = 10, threshold_abs = 0, num_peaks = 1, npixels_pad = 2000, zoom = 1, estimate_only = True):
+    def centre_image(self, roi = (0,10,0,10), centre = (1,1), gaussian_filter = False, sigma = 1, min_distance = 10,
+                     threshold_abs = 0, num_peaks = 1, npixels_pad = 2000, zoom = 1, estimate_only = True, plot_progress = False):
         """
         Centers the Fourier-domain image whose centre is located at one of its local maxima
         Completes zero-padding of the original image to a specified linear number of pixels
@@ -368,6 +384,9 @@ class KSpaceImage(object):
             False will irreversibly centre the image using local_max_coordinates specified in 'centre' argument
             True will only find the local_max_coordinates of local maxima
             Default is True.
+        plot_progress: bool, optional
+            Plot centred image for estimate_only = False.
+            Default is False
         """
         if self.image is not None:
             if npixels_pad >= self.image.shape[0] or npixels_pad >= self.image.shape[1]:
@@ -394,34 +413,36 @@ class KSpaceImage(object):
                                              min_distance = min_distance,
                                              threshold_abs = threshold_abs,
                                              num_peaks = num_peaks)
-                # plot local maxima
-                fig, ax = plt.subplots(1)
-                im = ax.imshow(self.image)
-                rect = patches.Rectangle((roi[0], roi[1]),
-                                         roi[2] - roi[0],
-                                         roi[3] - roi[1],
-                                         linewidth=1,
-                                         edgecolor='r',
-                                         facecolor='none')
-                ax.add_patch(rect)
-                ax.plot(local_max_coordinates[:, 1],
-                        local_max_coordinates[:, 0],
-                        'r.')
-                local_max_coordinates_temp = deepcopy(local_max_coordinates)
-                local_max_coordinates[:,0]=local_max_coordinates_temp[:,1]
-                local_max_coordinates[:,1] = local_max_coordinates_temp[:,0]
-                plt.text(int(roi[2]),
-                         int(roi[3]),
-                         local_max_coordinates,
-                         fontsize=11,
-                         color='r')
-                plt.title('Original image, ROI and local maxima')
-                plt.axis([self.image.shape[0] // 2 - self.image.shape[0] // 2 // zoom,
-                          self.image.shape[0] // 2 + self.image.shape[0] // 2 // zoom,
-                          self.image.shape[1] // 2 - self.image.shape[1] // 2 // zoom,
-                          self.image.shape[1] // 2 + self.image.shape[1] // 2 // zoom])
-                plt.colorbar(im)
-                plt.show()
+                #
+                if plot_progress is True:
+                    # plot local maxima
+                    fig, ax = plt.subplots(1)
+                    im = ax.imshow(self.image)
+                    rect = patches.Rectangle((roi[0], roi[1]),
+                                             roi[2] - roi[0],
+                                             roi[3] - roi[1],
+                                             linewidth=1,
+                                             edgecolor='r',
+                                             facecolor='none')
+                    ax.add_patch(rect)
+                    ax.plot(local_max_coordinates[:, 1],
+                            local_max_coordinates[:, 0],
+                            'r.')
+                    local_max_coordinates_temp = deepcopy(local_max_coordinates)
+                    local_max_coordinates[:,0]=local_max_coordinates_temp[:,1]
+                    local_max_coordinates[:,1] = local_max_coordinates_temp[:,0]
+                    plt.text(int(roi[2]),
+                             int(roi[3]),
+                             local_max_coordinates,
+                             fontsize=11,
+                             color='r')
+                    plt.title('Original image, ROI and local maxima')
+                    plt.axis([self.image.shape[0] // 2 - self.image.shape[0] // 2 // zoom,
+                              self.image.shape[0] // 2 + self.image.shape[0] // 2 // zoom,
+                              self.image.shape[1] // 2 - self.image.shape[1] // 2 // zoom,
+                              self.image.shape[1] // 2 + self.image.shape[1] // 2 // zoom])
+                    plt.colorbar(im)
+                    plt.show()
                 #
                 # centre image
                 if estimate_only is not True:
@@ -438,28 +459,29 @@ class KSpaceImage(object):
                     # centre image
                     im_centred = warp(im_pad, AffineTransform(translation=centroid), mode='wrap',
                                       preserve_range=True)
-                    print("Input image was padded to ", im_centred.shape[0], "X", im_centred.shape[1],"pixels.")
+                    print("Input image was padded to ", im_centred.shape[0], "X", im_centred.shape[1],"pixels and centred.")
                     self.metadata['Linear number of pixels in the zero-padded real-space image'] = npixels_pad
                     #
-                    # plot centred image
-                    fig1, ax1 = plt.subplots(1)
-                    plt.imshow(im_centred)
-                    ax1.plot(centre[1]-centroid[1],
-                            centre[0]-centroid[0],
-                            'r.')
-                    plt.text(centre[1]-centroid[1] + 10,
-                             centre[0]-centroid[0],
-                             (centre[1]-centroid[1],
-                            centre[0]-centroid[0]),
-                             fontsize=11,
-                             color='r')
-                    plt.title('Centred image')
-                    plt.colorbar()
-                    plt.axis([im_centred.shape[0] // 2 - im_centred.shape[0] // 2 // (zoom * im_centred.shape[0]/self.image.shape[0]),
-                              im_centred.shape[0] // 2 + im_centred.shape[0] // 2 // (zoom * im_centred.shape[0]/self.image.shape[0]),
-                              im_centred.shape[1] // 2 - im_centred.shape[1] // 2 // (zoom * im_centred.shape[0]/self.image.shape[0]),
-                              im_centred.shape[1] // 2 + im_centred.shape[1] // 2 // (zoom * im_centred.shape[0]/self.image.shape[0])])
-                    plt.show()
+                    if plot_progress is True:
+                        # plot centred image
+                        fig1, ax1 = plt.subplots(1)
+                        plt.imshow(im_centred)
+                        ax1.plot(centre[1]-centroid[1],
+                                centre[0]-centroid[0],
+                                'r.')
+                        plt.text(centre[1]-centroid[1] + 10,
+                                 centre[0]-centroid[0],
+                                 (centre[1]-centroid[1],
+                                centre[0]-centroid[0]),
+                                 fontsize=11,
+                                 color='r')
+                        plt.title('Centred image')
+                        plt.colorbar()
+                        plt.axis([im_centred.shape[0] // 2 - im_centred.shape[0] // 2 // (zoom * im_centred.shape[0]/self.image.shape[0]),
+                                  im_centred.shape[0] // 2 + im_centred.shape[0] // 2 // (zoom * im_centred.shape[0]/self.image.shape[0]),
+                                  im_centred.shape[1] // 2 - im_centred.shape[1] // 2 // (zoom * im_centred.shape[0]/self.image.shape[0]),
+                                  im_centred.shape[1] // 2 + im_centred.shape[1] // 2 // (zoom * im_centred.shape[0]/self.image.shape[0])])
+                        plt.show()
                     self.image = im_centred
                     self.metadata['Image centred and padded?'] = 'yes'
                 #
@@ -468,7 +490,7 @@ class KSpaceImage(object):
         else:
             raise ValueError('Read the image data first!')
 
-    def subtract_background(self, counts = 0, zoom = 1, log_scale = False, estimate_only = True):
+    def subtract_background(self, counts = 0, zoom = 1, log_scale = False, estimate_only = True, plot_progress = False):
         """
         Subtracts constant background given a number of counts
 
@@ -489,6 +511,9 @@ class KSpaceImage(object):
             False will irreversibly subtract the background from the image.
             True will only estimate how the image will look like after the background subtraction.
             Default is True.
+        plot_progress: bool, optional
+            Plot background-free image for estimate_only = False.
+            Default is False
         """
         if self.image is not None and self.metadata['Image centred and padded?'] == 'yes':
             im_bgfree = self.image
@@ -517,19 +542,20 @@ class KSpaceImage(object):
                 self.image = im_bgfree
                 self.metadata['Background subtracted?'] = 'yes'
                 #
-                if log_scale == True:
-                    plt.imshow(np.log(self.image))
-                    print('Plotted in log scale')
-                else:
-                    plt.imshow(self.image)
-                plt.axis([im_bgfree.shape[0]//2-im_bgfree.shape[0]//2//zoom,
-                          im_bgfree.shape[0]//2+im_bgfree.shape[0]//2//zoom,
-                          im_bgfree.shape[1]//2-im_bgfree.shape[1]//2//zoom,
-                          im_bgfree.shape[1]//2+im_bgfree.shape[1]//2//zoom])
-                plt.gca().invert_yaxis()
-                plt.title("Image after the background subtraction.")
-                plt.colorbar()
-                plt.show()
+                if plot_progress is True:
+                    if log_scale == True:
+                        plt.imshow(np.log(self.image))
+                        print('Plotted in log scale')
+                    else:
+                        plt.imshow(self.image)
+                    plt.axis([im_bgfree.shape[0]//2-im_bgfree.shape[0]//2//zoom,
+                              im_bgfree.shape[0]//2+im_bgfree.shape[0]//2//zoom,
+                              im_bgfree.shape[1]//2-im_bgfree.shape[1]//2//zoom,
+                              im_bgfree.shape[1]//2+im_bgfree.shape[1]//2//zoom])
+                    plt.gca().invert_yaxis()
+                    plt.title("Image after the background subtraction.")
+                    plt.colorbar()
+                    plt.show()
                 print("Background of", counts, "counts has been subtracted.")
         else:
             raise ValueError('Read the image data and centre it first!')
