@@ -6,36 +6,17 @@ Class for phase retrieval
 """
 
 import os
-import mahotas as mh
-import mpmath
 import numpy as np
-import random
 import pandas as pd
-from matplotlib import pyplot as plt
-from mpmath import phase
-from scipy import ndimage as ndi
-from skimage import feature
-from skimage import io
-from skimage import measure
-from skimage.exposure import rescale_intensity
-from skimage.filters import gaussian
-from skimage.segmentation import watershed
-from IPython.display import clear_output
 import warnings
-
-from skimage.transform import AffineTransform, resize, warp
-from skimage.util import pad
-
 from datetime import datetime
-
 from IPython import display
-
+from matplotlib import pyplot as plt
+from skimage import io
+from skimage.exposure import rescale_intensity
 
 from PhaseRetrieval.classes.rspacemetadata import RSpaceMetadata
 from PhaseRetrieval.classes.kspacemetadata import KSpaceMetadata
-
-
-
 
 class PhaseRetrieval(object):
 
@@ -998,21 +979,3 @@ class PhaseRetrieval(object):
                 raise ValueError("Filename or path cannot be None!")
         else:
             raise ValueError("Run phase retrieval algorithm first!")
-
-
-    # def save_error(self, filename = None, pathtosave = None):
-    #     # BETTER SAVE IT AS METADATA
-    #     #
-    #     if self.rms_error is not None:
-    #         #
-    #         print('saving error as float32 in ', pathtosave)
-    #         #
-    #         rms_final = str(float(self.rms_error[-1])).replace('.', '')
-    #         if len(rms_final) > 6:
-    #             rms_final = rms_final[1:6]
-    #         rms_final = '1' + rms_final + '000_' + datetime.now().strftime('%Y%m%d_%H%M%S')
-    #         filename_full = filename + '_error_' + rms_final + '.csv'
-    #         pd.Series(self.rms_error).to_csv(os.path.join(pathtosave, filename_full), sep=',', header=False)
-    #         print('Error saved as ', filename_full)
-    #     else:
-    #         raise ValueError("Run phase retrieval algorithm first!")
