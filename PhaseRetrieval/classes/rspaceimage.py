@@ -149,7 +149,7 @@ class RSpaceImage(object):
         else:
             raise ValueError('Read the image data first!')
 
-    def rotate_image(self, times_rot=1, axes=(0, 1), estimate_only = True):
+    def rotate_image(self, times_rot=1, axes=(0, 1), estimate_only = True, plot_progress = False):
         """
         Rotates the image by 90°.
 
@@ -167,6 +167,9 @@ class RSpaceImage(object):
                 False will irreversibly rotate the input image.
                 True will only estimate how the image will look like after the rotation.
                 Default is True.
+            plot_progress: bool, optional
+                Plot original and rotated images for estimate_only = False.
+                Default is False
         """
         if self.image is not None:
             if estimate_only is True:
@@ -185,27 +188,28 @@ class RSpaceImage(object):
                 plt.show()
             elif estimate_only is False:
                 #
-                fig, ax = plt.subplots(ncols=2, figsize=(10, 4))
-                ax1, ax2 = ax
-                im1 = ax1.imshow(self.image)
-                ax1.set_title("Original")
-                #ax1.invert_yaxis()
-                plt.colorbar(im1,ax=ax1)
-                #
-                temp = np.rot90(self.image, times_rot, axes)
-                self.image = temp
+                rotated = np.rot90(self.image, times_rot, axes)
                 print("Input image was rotated")
                 #
-                im2 = ax2.imshow(self.image)
-                ax2.set_title("Rotated")
-                #ax2.invert_yaxis()
-                plt.colorbar(im2,ax=ax2)
-                plt.show()
-                #
+                if plot_progress is True:
+                    fig, ax = plt.subplots(ncols=2, figsize=(10, 4))
+                    ax1, ax2 = ax
+                    im1 = ax1.imshow(self.image)
+                    ax1.set_title("Original")
+                    #ax1.invert_yaxis()
+                    plt.colorbar(im1,ax=ax1)
+                    #
+                    im2 = ax2.imshow(rotated)
+                    ax2.set_title("Rotated")
+                    #ax2.invert_yaxis()
+                    plt.colorbar(im2,ax=ax2)
+                    plt.show()
+                    #
+                self.image = rotated
         else:
             raise ValueError('Read the image data first!')
 
-    def flip_image(self, axis=0, estimate_only = True):
+    def flip_image(self, axis=0, estimate_only = True, plot_progress = False):
         """
         Flips the image along its vertical or horizontal axes.
 
@@ -224,6 +228,9 @@ class RSpaceImage(object):
             False will irreversibly flip the input image.
             True will only estimate how the image will look like after the flipping.
             Default is True.
+        plot_progress: bool, optional
+            Plot original and flipped images for estimate_only = False.
+            Default is False
         """
         if self.image is not None:
             if estimate_only == True:
@@ -246,24 +253,26 @@ class RSpaceImage(object):
                 plt.show()
             elif estimate_only == False:
                 #
-                fig, ax = plt.subplots(ncols=2, figsize=(10, 4))
-                ax1, ax2 = ax
-                im1 = ax1.imshow(self.image)
-                ax1.set_title("Original")
-                plt.colorbar(im1,ax=ax1)
-                #
                 if axis == 0:
                     # flip upside-down
-                    self.image = np.flipud(self.image)
+                    flipped = np.flipud(self.image)
                 elif axis == 1:
                     # flip left-right
-                    self.image = np.fliplr(self.image)
+                    flipped = np.fliplr(self.image)
                 print("Input image was flipped")
+                if plot_progress is True:
+                    #
+                    fig, ax = plt.subplots(ncols=2, figsize=(10, 4))
+                    ax1, ax2 = ax
+                    im1 = ax1.imshow(self.image)
+                    ax1.set_title("Original")
+                    plt.colorbar(im1,ax=ax1)
+                    im2 = ax2.imshow(flipped)
+                    ax2.set_title("Flipped")
+                    plt.colorbar(im2,ax=ax2)
+                    plt.show()
                 #
-                im2 = ax2.imshow(self.image)
-                ax2.set_title("Flipped")
-                plt.colorbar(im2,ax=ax2)
-                plt.show()
+                self.image = flipped
         else:
             raise ValueError('Read the image data first!')
 
