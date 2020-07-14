@@ -97,6 +97,7 @@ class RSpaceImage(object):
             #
             self.metadata['Image centred and padded?'] = 'no'
             self.metadata['Background subtracted?'] = 'no'
+            print("Object domain: Input image was read")
         else:
             raise ValueError('Invalid path! File does not exist!')
 
@@ -189,7 +190,7 @@ class RSpaceImage(object):
             elif estimate_only is False:
                 #
                 rotated = np.rot90(self.image, times_rot, axes)
-                print("Input image was rotated")
+                print("Object-domain: Input image was rotated")
                 #
                 if plot_progress is True:
                     fig, ax = plt.subplots(ncols=2, figsize=(10, 4))
@@ -259,7 +260,7 @@ class RSpaceImage(object):
                 elif axis == 1:
                     # flip left-right
                     flipped = np.fliplr(self.image)
-                print("Input image was flipped")
+                print("Object-domain: Image was flipped")
                 if plot_progress is True:
                     #
                     fig, ax = plt.subplots(ncols=2, figsize=(10, 4))
@@ -356,7 +357,7 @@ class RSpaceImage(object):
                         plt.title('Output of the watershed algorithm - padded')
                         plt.colorbar()
                         plt.show()
-                    print("Input and watershed images have been padded to ", im_pad.shape[0], "X", im_pad.shape[1], "pixels.")
+                    print("Object domain: Input and watershed images were padded to ", im_pad.shape[0], "X", im_pad.shape[1], "pixels.")
                     self.metadata['Linear number of pixels in the zero-padded real-space image']= npixels_pad
                     #
                     # compute the object's centre as a centre of mass of the padded watershed distribution
@@ -375,7 +376,7 @@ class RSpaceImage(object):
                                           AffineTransform(translation=im_centroid),
                                           mode='wrap',
                                           preserve_range=True)
-                        print('Centred.\nApodization filter has NOT been applied.\nLinear pixel size is ', pixelsize_dr0, "nm")
+                        print('Object domain: Image centred. Apodization was NOT applied. Linear pixel size is ', pixelsize_dr0, "nm")
                         self.metadata['Apodization filter applied?'] = 'no'
                         #
                         if plot_progress is True:
@@ -406,7 +407,7 @@ class RSpaceImage(object):
                                                                               AffineTransform(translation=im_centroid),
                                                                               mode='wrap',
                                                                               preserve_range=True)
-                        print("Centred.\nApodization filter has been applied.\nLinear pixel size is ", pixelsize_dr0, "nm")
+                        print("Object domain: Image centred. Apodization filter was applied. Linear pixel size is ", pixelsize_dr0, "nm")
                         self.metadata['Apodization filter applied?'] = 'yes'
                         #
                         if plot_progress is True:
@@ -470,8 +471,8 @@ class RSpaceImage(object):
                 plt.gca().invert_yaxis()
                 plt.colorbar()
                 plt.show()
-                print("This is how the image looks like if the background were subtracted.")
-                print("Background was set to ", counts)
+                print("Object domain: This is how the image looks like if the background were subtracted.")
+                print("Object domain: Background was set to ", counts)
             else:
                 # subtract background and save changes
                 self.image = im_bgfree
@@ -480,7 +481,7 @@ class RSpaceImage(object):
                 if plot_progress is True:
                     if log_scale == True:
                         plt.imshow(np.log(self.image))
-                        print('Plotted in log scale')
+                        print('Object domain: Plotted in log scale')
                     else:
                         plt.imshow(self.image)
                     plt.axis([im_bgfree.shape[0] // 2 - im_bgfree.shape[0] // 2 // zoom,
@@ -488,10 +489,10 @@ class RSpaceImage(object):
                               im_bgfree.shape[1] // 2 - im_bgfree.shape[1] // 2 // zoom,
                               im_bgfree.shape[1] // 2 + im_bgfree.shape[1] // 2 // zoom])
                     plt.gca().invert_yaxis()
-                    plt.title("Image after the background subtraction.")
+                    plt.title("Object domain: Image after the background subtraction.")
                     plt.colorbar()
                     plt.show()
-                print("Background of", counts, "counts has been subtracted.")
+                print("Object domain: Background of", counts, "counts was subtracted.")
         else:
             raise ValueError('Read the image data and centre it first!')
 
@@ -555,22 +556,20 @@ class RSpaceImage(object):
                 #compute final linear number of pixels as set by the downsampling ratio and experimental
                 #pixel sizes in Fourier and object spaces
                 npixels_final = int(round(2 * np.pi / (downsampling * pixelsize_dr0 * pixelsize_dk)))
-                print('npixels_final =', npixels_final)
+                print('Object domain: npixels_final =', npixels_final)
                 #
                 if estimate_only == False:
-                    print('input image shape is ', self.image.shape[0],'X', self.image.shape[1])
-                    print('resampling object domain image...')
+                    print('Object domain: Input image shape is ', self.image.shape[0],'X', self.image.shape[1])
                     #
                     self.image = resize(np.array(self.image), (self.image.shape[0] // downsampling, self.image.shape[1] // downsampling), anti_aliasing=True)
-                    print('image has been resampled and its current shape is', self.image.shape)
+                    print('Object domain: Image was resampled and its current shape is', self.image.shape)
                     npixels_to_pad_final0 = int((npixels_final - self.image.shape[0]) / 2)
                     npixels_to_pad_final1 = int((npixels_final - self.image.shape[1]) / 2)
                     self.image = pad(np.array(self.image), ((npixels_to_pad_final0, npixels_to_pad_final1), (npixels_to_pad_final0, npixels_to_pad_final1)), mode='constant')
-                    print('image has been resampled with the downsampling ratio =', downsampling, 'and zero-padded to npixels_final X npixels_final=', self.image.shape[0], 'X', self.image.shape[1], 'pixels')
+                    print('Object domain: Image was resampled with the downsampling ratio =', downsampling, 'and zero-padded to npixels_final X npixels_final=', self.image.shape[0], 'X', self.image.shape[1], 'pixels')
             #
                 elif estimate_only == True:
-                    print('estimating the downsampling ratio...')
-                    print('Downsampling ratio =', downsampling)
+                    print('Object domain: Downsampling ratio =', downsampling)
                 self.metadata['Wavelength of light, m'] = lambd
                 self.metadata['Field of view, deg'] = fieldofview
                 self.metadata['Number of pixels within the field of view'] = npixels_kspace
@@ -606,9 +605,8 @@ class RSpaceImage(object):
                 # save its metadata
                 self.metadata.to_csv(os.path.join(pathtosave, outputfilename[:-4] + '.csv'), sep='\t', header=False)
                 self.filename = outputfilename
-                print('The image was saved in tif file under ', os.path.join(pathtosave, outputfilename))
-                print()
-                print('Its metadata was saved in csv file under ', os.path.join(pathtosave, outputfilename[:-4] + '.csv'))
+                print('Object domain: Image was saved in tif file under ', os.path.join(pathtosave, outputfilename))
+                print('Object domain: Metadata was saved in csv file under ', os.path.join(pathtosave, outputfilename[:-4] + '.csv'))
             else:
                 raise ValueError('Invalid path! Please specify a valid path to save data as tif file.')
         else:

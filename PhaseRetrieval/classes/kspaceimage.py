@@ -85,6 +85,7 @@ class KSpaceImage(object):
             #
             self.metadata['Image centred and padded?'] = 'no'
             self.metadata['Background subtracted?'] = 'no'
+            print("Fourier domain: Input image was read")
         else:
             raise ValueError('Invalid path! File does not exist!')
 
@@ -183,11 +184,11 @@ class KSpaceImage(object):
                           self.image.shape[1] // 2 + self.image.shape[1] // 2 // zoom])
                 ax2.invert_yaxis()
                 plt.show()
-                print("This is how the image looks like if rotated.")
+                print("Fourier domain: This is how the image looks like if rotated.")
             elif estimate_only is False:
                 #
                 rotated = np.rot90(self.image, times_rot, axes)
-                print("Input image was rotated")
+                print("Fourier domain: Input image was rotated")
                 #
                 if plot_progress is True:
                     #
@@ -272,7 +273,7 @@ class KSpaceImage(object):
                 elif axis == 1:
                     # flip left-right
                     flipped = np.fliplr(self.image)
-                print("Input image was flipped")
+                print("Fourier domain: Input image was flipped")
                 #
                 if plot_progress is True:
                     #
@@ -459,7 +460,7 @@ class KSpaceImage(object):
                     # centre image
                     im_centred = warp(im_pad, AffineTransform(translation=centroid), mode='wrap',
                                       preserve_range=True)
-                    print("Input image was padded to ", im_centred.shape[0], "X", im_centred.shape[1],"pixels and centred.")
+                    print("Fourier domain: Input image was padded to ", im_centred.shape[0], "X", im_centred.shape[1],"pixels and centred.")
                     self.metadata['Linear number of pixels in the zero-padded real-space image'] = npixels_pad
                     #
                     if plot_progress is True:
@@ -535,8 +536,8 @@ class KSpaceImage(object):
                 plt.gca().invert_yaxis()
                 plt.colorbar()
                 plt.show()
-                print("This is how the image would look like if the background were subtracted.")
-                print("Background was set to ", counts)
+                print("Fourier domain: This is how the image would look like if the background were subtracted.")
+                print("Fourier domain: Background was set to ", counts)
             else:
                 #subtract background and save changes
                 self.image = im_bgfree
@@ -545,7 +546,7 @@ class KSpaceImage(object):
                 if plot_progress is True:
                     if log_scale == True:
                         plt.imshow(np.log(self.image))
-                        print('Plotted in log scale')
+                        print('Fourier domain: Plotted in log scale')
                     else:
                         plt.imshow(self.image)
                     plt.axis([im_bgfree.shape[0]//2-im_bgfree.shape[0]//2//zoom,
@@ -556,7 +557,7 @@ class KSpaceImage(object):
                     plt.title("Image after the background subtraction.")
                     plt.colorbar()
                     plt.show()
-                print("Background of", counts, "counts has been subtracted.")
+                print("Fourier domain: Background of", counts, "counts has been subtracted.")
         else:
             raise ValueError('Read the image data and centre it first!')
 
@@ -581,12 +582,12 @@ class KSpaceImage(object):
             self.image = self.image * renorm_factor
             self.metadata["Parseval's theorem fulfilled?"] = 'yes'
             #
-            print ("Energy in Fourier domain:", np.sum(np.sum(self.image)))
+            print ("Fourier domain: Energy = ", np.sum(np.sum(self.image)))
             print("Energy in object's domain * total number of pixels: ", self.image.shape[0] * self.image.shape[1] * energy_rspace)
             if round(np.sum(np.sum(self.image))) == round(self.image.shape[0] * self.image.shape[1] * energy_rspace):
-                return print("Fourier domain image has been renormalised. Parseval's theorem is fulfilled.")
+                return print("Fourier domain: Image was renormalised. Parseval's theorem is fulfilled.")
             else:
-                return print("Fourier domain image has been renormalised. But Parseval's theorem is NOT fulfilled.")
+                return print("Fourier domain: Image was renormalised. Parseval's theorem is NOT fulfilled.")
         else:
             raise ValueError('Energy in the object domain cannot be None!')
 
@@ -616,9 +617,8 @@ class KSpaceImage(object):
                 #save its metadata
                 self.metadata.to_csv(os.path.join(pathtosave, outputfilename[:-4] + '.csv'), sep='\t', header=False)
                 self.filename = outputfilename
-                print('The image was saved in tif file under ', os.path.join(pathtosave, outputfilename))
-                print()
-                print('Its metadata was saved in csv file under ', os.path.join(pathtosave, outputfilename[:-4] + '.csv'))
+                print('Fourier domain: Image was saved in tif file under ', os.path.join(pathtosave, outputfilename))
+                print('Fourier domain: Metadata was saved in csv file under ', os.path.join(pathtosave, outputfilename[:-4] + '.csv'))
             else:
                 raise ValueError('Invalid path! Please specify a valid path to save data as tif file.')
         else:
