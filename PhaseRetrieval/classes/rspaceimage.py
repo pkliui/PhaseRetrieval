@@ -6,7 +6,6 @@ Class for object-domain images.
 """
 
 import os
-import mahotas as mh
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
