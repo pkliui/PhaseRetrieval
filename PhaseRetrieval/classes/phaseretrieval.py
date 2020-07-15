@@ -979,3 +979,82 @@ class PhaseRetrieval(object):
                 raise ValueError("Filename or path cannot be None!")
         else:
             raise ValueError("Run phase retrieval algorithm first!")
+
+    def save_as_csv(self,
+                    filename=None,
+                    pathtosave=None,
+                    Fourier_amplitude = True,
+                    Fourier_phase=True,
+                    object_amplitude=True,
+                    object_phase=True):
+
+        #
+        #modify the last value of RMS error and append it to the filename
+        if self.rms_error is not None:
+            rms_final = str(float(self.rms_error[-1])).replace('.','')
+            if len(rms_final) > 6:
+                rms_final = rms_final[1:6]
+            rms_final = '1' + rms_final + '000_' + datetime.now().strftime('%Y%m%d_%H%M%S')
+        else:
+            raise ValueError('Error cannot be None. Run phase retrieval algorithm first!')
+        #
+        #
+        if Fourier_amplitude is True:
+            # convert to numpy array
+            if type(self.image_kspace_kk_prime) is not np.ndarray:
+                image_kspace_kk_prime_abs = np.abs(self.image_kspace_kk_prime.to_numpy())
+            else:
+                image_kspace_kk_prime_abs = np.abs(self.image_kspace_kk_prime)
+            #
+            # append csv if needed
+            if not filename.endswith('.csv'):
+                filename_full = filename + '_Fourier_amplitude_' + rms_final + '.csv'
+            else:
+                filename_full = filename[:-4] + '_Fourier_amplitude_' + rms_final + '.csv'
+            np.savetxt(os.path.join(pathtosave, filename_full), image_kspace_kk_prime_abs, delimiter = '\t')
+            print('Fourier amplitude saved as ', filename_full)
+            #
+        if Fourier_phase is True:
+            # convert to numpy array
+            if type(self.image_kspace_kk_prime) is not np.ndarray:
+                image_kspace_kk_prime_angle = np.angle(self.image_kspace_kk_prime.to_numpy())
+            else:
+                image_kspace_kk_prime_angle = np.angle(self.image_kspace_kk_prime)
+            #
+            # append csv if needed
+            if not filename.endswith('.csv'):
+                filename_full = filename + '_Fourier_phase_' + rms_final + '.csv'
+            else:
+                filename_full = filename[:-4] + '_Fourier_phase_' + rms_final + '.csv'
+            np.savetxt(os.path.join(pathtosave, filename_full), image_kspace_kk_prime_angle, delimiter = '\t')
+            print('Fourier phase saved as ', filename_full)
+        #
+        if object_amplitude is True:
+            # convert to numpy array
+            if type(self.image_rspace_kk_prime) is not np.ndarray:
+                image_rspace_kk_prime_abs = np.abs(self.image_rspace_kk_prime.to_numpy())
+            else:
+                image_rspace_kk_prime_abs = np.abs(self.image_rspace_kk_prime)
+            #
+            # append csv if needed
+            if not filename.endswith('.csv'):
+                filename_full = filename + '_object_amplitude_' + rms_final + '.csv'
+            else:
+                filename_full = filename[:-4] + '_object_amplitude_' + rms_final + '.csv'
+            np.savetxt(os.path.join(pathtosave, filename_full), image_rspace_kk_prime_abs, delimiter = '\t')
+            print('object amplitude saved as ', filename_full)
+            #
+        if object_phase is True:
+            # convert to numpy array
+            if type(self.image_rspace_kk_prime) is not np.ndarray:
+                image_rspace_kk_prime_angle = np.angle(self.image_rspace_kk_prime.to_numpy())
+            else:
+                image_rspace_kk_prime_angle = np.angle(self.image_rspace_kk_prime)
+            #
+            # append csv if needed
+            if not filename.endswith('.csv'):
+                filename_full = filename + '_object_phase_' + rms_final + '.csv'
+            else:
+                filename_full = filename[:-4] + '_object_phase_' + rms_final + '.csv'
+            np.savetxt(os.path.join(pathtosave, filename_full), image_rspace_kk_prime_angle, delimiter = '\t')
+            print('object phase saved as ', filename_full)
