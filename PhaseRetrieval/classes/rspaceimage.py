@@ -524,6 +524,11 @@ class RSpaceImage(object):
             False will irreversibly resample the input image.
             True will only estimate the downsampling ratio.
             Default is True.
+        ---
+        Returns
+        ---
+        npixels_final : int
+            Final linear number of pixels in the object-domain image
         """
         if self.image is not None:
             if self.metadata['Image centred and padded?'] == 'yes':
@@ -553,10 +558,9 @@ class RSpaceImage(object):
                 #compute the downsampling ratio
                 downsampling = round(pixelsize_dr_pad / pixelsize_dr0)
                 #
-                #compute final linear number of pixels as set by the downsampling ratio and experimental
+                #compute preliminary final linear number of pixels as set by the downsampling ratio and experimental
                 #pixel sizes in Fourier and object spaces
                 npixels_final = int(round(2 * np.pi / (downsampling * pixelsize_dr0 * pixelsize_dk)))
-                print('Object domain: npixels_final =', npixels_final)
                 #
                 if estimate_only == False:
                     print('Object domain: Input image shape is ', self.image.shape[0],'X', self.image.shape[1])
@@ -566,8 +570,28 @@ class RSpaceImage(object):
                     npixels_to_pad_final0 = int((npixels_final - self.image.shape[0]) / 2)
                     npixels_to_pad_final1 = int((npixels_final - self.image.shape[1]) / 2)
                     self.image = pad(np.array(self.image), ((npixels_to_pad_final0, npixels_to_pad_final1), (npixels_to_pad_final0, npixels_to_pad_final1)), mode='constant')
-                    print('Object domain: Image was resampled with the downsampling ratio =', downsampling, 'and zero-padded to npixels_final X npixels_final=', self.image.shape[0], 'X', self.image.shape[1], 'pixels')
-            #
+                    #
+                    #check if the final dimensions are of equal length
+                    if self.image.shape[0] == self.image.shape[1]:
+                        #
+                        #set the final linear number of pixels by the actual image size
+                        npixels_final = self.image.shape[0]
+                        print('Object domain: Image was resampled with the downsampling ratio =', downsampling,
+                              'and zero-padded to npixels_final X npixels_final=', self.image.shape[0], 'X', self.image.shape[1], 'pixels')
+                    #
+                    #if the final dimensions are not of the equal length, fix them by deleting the corresponding last column
+                    else:
+                        if self.image.shape[0] > self.image.shape[1]:
+                            self.image = self.image[:-1,:]
+                        elif self.image.shape[0] < self.image.shape[1]:
+                            self.image = self.image[:,:-1]
+                        #
+                        # set the final linear number of pixels by the actual image size
+                        npixels_final = self.image.shape[0]
+                        print('Object domain: Image was resampled with the downsampling ratio =', downsampling,
+                              'and zero-padded to npixels_final X npixels_final=', self.image.shape[0], 'X',
+                              self.image.shape[1], 'pixels')
+                #
                 elif estimate_only == True:
                     print('Object domain: Downsampling ratio =', downsampling)
                 self.metadata['Wavelength of light, m'] = lambd
@@ -577,6 +601,7 @@ class RSpaceImage(object):
                 raise ValueError('Centre and zero-pad image distribution!')
         else:
             raise ValueError('Read the image data first!')
+        return npixels_final
 
     def save_as_tif(self, pathtosave=None, outputfilename=None):
         """
