@@ -5,6 +5,7 @@ Class for phase retrieval
 
 """
 
+import glob
 import os
 import numpy as np
 import pandas as pd
@@ -326,10 +327,11 @@ class PhaseRetrieval(object):
                 plt.gca().invert_yaxis()
                 plt.colorbar()
                 plt.title("Input Fourier-domain amplitude")
+                plt.show()
             else:
                 raise ValueError('Read data first.')
         else:
-            raise ValueError('Specify image domain first. Must be either "object" or "Fourier"!')
+            raise ValueError('Specify image domain first. Must be either image_domain="object" or image_domain= "Fourier"!')
 
     def gerchberg_saxton(self, gs_steps = None, plot_progress = False, plot_every_kth_iteration = 1, zoom = 1):
         """
@@ -520,7 +522,7 @@ class PhaseRetrieval(object):
         #
         #return np.abs(self.image_kspace_kk_prime), np.angle(self.image_kspace_kk_prime), np.abs(self.image_rspace_kk_prime),  np.angle(self.image_rspace_kk_prime), self.rms_error
 
-    def check_oversampling(self):
+    def check_oversampling(self, extrapolation = False):
         """
         Checks if the oversampling ratio is fulfilled for extrapolation in Fourier domain
         Following T. Latychevskaia, Reconstruction of missing information in diffraction patterns and holograms by iterative phase retrieval,
@@ -546,16 +548,17 @@ class PhaseRetrieval(object):
         else:
             print('linear oversampling condition is NOT fulfilled')
         #
-        #check if the oversampling condition is fulfilled
-        if ff < (1 - 2 / oversampling ** 2):
-            print ('Oversampling condition for extrapolation is fulfilled.')
-            print( 'The ratio of the number of missing pixels to the total number of pixels is f = ', ff)
-            print( 'Reconstruction with phase retrieval (with extrapolation) is possible if f < ', 1 - 2 / oversampling ** 2)
-        else:
-            print ('Oversampling condition for extrapolation is NOT fulfilled.')
-            print( 'The ratio of the number of missing pixels to the total number of pixels is f = ', ff)
-            print( 'Reconstruction with phase retrieval (with extrapolation) is possible only if f < ', 1 - 2 / oversampling ** 2)
-            print('Keep in mind that typically quality of reconstructions drastically degrades for high missing pixel numbers')
+        if extrapolation is True:
+            #check if the oversampling condition is fulfilled
+            if ff < (1 - 2 / oversampling ** 2):
+                print ('Oversampling condition for extrapolation is fulfilled.')
+                print( 'The ratio of the number of missing pixels to the total number of pixels is f = ', ff)
+                print( 'Reconstruction with phase retrieval (with extrapolation) is possible if f < ', 1 - 2 / oversampling ** 2)
+            else:
+                print ('Oversampling condition for extrapolation is NOT fulfilled.')
+                print( 'The ratio of the number of missing pixels to the total number of pixels is f = ', ff)
+                print( 'Reconstruction with phase retrieval (with extrapolation) is possible only if f < ', 1 - 2 / oversampling ** 2)
+                print('Keep in mind that typically quality of reconstructions drastically degrades for high missing pixel numbers')
 
     def gerchberg_saxton_extrapolation(self, gs_steps = None, plot_progress = False, plot_every_kth_iteration = 1, zoom = 1):
         """
