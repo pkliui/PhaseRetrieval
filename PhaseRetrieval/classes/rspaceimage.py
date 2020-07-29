@@ -276,7 +276,7 @@ class RSpaceImage(object):
         else:
             raise ValueError('Read the image data first!')
 
-    def centre_image_watershed(self, linear_object_size=100, npixels_pad=2000, apodization=False, plot_progress = False):
+    def centre_image_watershed(self, linear_object_size=100e-6, npixels_pad=2000, apodization=False, plot_progress = False):
         """
         Centers the object-domain image using watershed algorithm (the existence of only a single blob is assumed).
         Finds its physical linear pixel size.
@@ -287,8 +287,8 @@ class RSpaceImage(object):
         Parameters
         ---
         linear_object_size: float, optional
-            Physical linear size of the (non-zero-valued) input object distribution, in micrometers.
-            Default is 100.
+            Physical linear size of the (non-zero-valued) input object distribution, in m.
+            Default is 100 micrometer.
         npixels_pad: int, optional
             Linear number of pixels in the zero-padded object-domain image.
             Default is 2000.
@@ -415,7 +415,7 @@ class RSpaceImage(object):
                             plt.colorbar()
                             plt.show()
                     self.metadata['Image centred and padded?'] = 'yes'
-                    self.metadata['Linear size of the object, m'] = linear_object_size * 1e-6
+                    self.metadata['Linear size of the object, m'] = linear_object_size
                     #
                 else:
                     raise ValueError('Specified number of pixels for zero-padding is too low!')
