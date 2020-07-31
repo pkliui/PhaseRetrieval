@@ -12,6 +12,7 @@ from PIL import Image
 
 def phase_alignment_gerchberg_saxton(amplitude_filename = None,
                                      phase_filenames = None,
+                                     num_files_to_align = None,
                                      delimiter = '\t',
                                      ref_coordinates=None,
                                      symmetric_phase = True,
@@ -82,6 +83,13 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
         else:
             ref_coordinates = ref_coordinates
         #
+        #
+        #set the number of files to align
+        if num_files_to_align is None:
+            len_phase_filenames = len(phase_filenames)
+        else:
+            len_phase_filenames = num_files_to_align
+        #
         if phase_idx == 0:
             # no aligned / reference phases at first
             reference_phase = np.zeros(phase.shape)
@@ -92,7 +100,7 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
             # aligned phases is the sum of reference and offset phases
             aligned_phases = reference_phase + offset_phase
         #
-        elif phase_idx > 0 and phase_idx < len(phase_filenames) - 1:
+        elif phase_idx > 0 and phase_idx < len_phase_filenames - 1:
             # set the reference phase to be equal to the sum of already aligned phases
             reference_phase = np.copy(aligned_phases)
             #
@@ -113,7 +121,7 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
             aligned_phases = reference_phase + offset_phase
         #
         #compute the average of the aligned phases
-        elif phase_idx > 0 and phase_idx == len(phase_filenames) - 1:
+        elif phase_idx > 0 and phase_idx == len_phase_filenames - 1:
             print("averaging ")
             aligned_phases = aligned_phases / len(phase_filenames) - int(symmetric_phase) * 0.5 * np.max(np.max(aligned_phases)) / len(phase_filenames)
             #
