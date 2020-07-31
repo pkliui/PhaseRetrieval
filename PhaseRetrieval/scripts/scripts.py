@@ -313,7 +313,7 @@ def phase_alignment_gerchberg_saxton_script(datapath=None,
                                      amplitude_prefix=None,
                                      phase_prefix=None,
                                      delimiter = '\t',
-                                     ref_coordinates=(0, 0),
+                                     ref_coordinates=None,
                                      symmetric_phase = True,
                                      plot_progress=True,
                                      plot_every_kth_iteration=1,
@@ -340,9 +340,10 @@ def phase_alignment_gerchberg_saxton_script(datapath=None,
     delimiter : str, optional
         Delimiter in csv files
         Default is '\t'
-    ref_coordinates: tuple, optional
+    ref_coordinates: list [1x2], optional
         Coordinates of a reference phase value.
-        Users may provide their own value, the default is (0,0).
+        If set to None, the ref_coordinates will be set the image's centre coordinates (i.e. [501,501] for 1000x1000 pixels image)
+        If a list is provided, the values will be taken from there.
     symmetric_phase ; bool, optional
         If set to True, pixel values in the final phase distribution will be shifted symmetrically w.r.t zero
         If False, pixels values in the final phase distribution will be left as they are after alignment
