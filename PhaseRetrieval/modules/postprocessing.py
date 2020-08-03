@@ -9,6 +9,7 @@ from matplotlib import pyplot as plt
 from skimage.exposure import rescale_intensity
 import os
 from PIL import Image
+import time
 
 def phase_alignment_gerchberg_saxton(amplitude_filename = None,
                                      phase_filenames = None,
@@ -68,6 +69,8 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
         raise ValueError("Path to an amplitude file does not exist")
     #
     for phase_idx, phase_file in enumerate(sorted(phase_filenames)):
+        print(phase_file)
+        time.sleep(2)
         #
         # read phase images
         phase = pd.read_csv(phase_file, delimiter=delimiter, header=None)
