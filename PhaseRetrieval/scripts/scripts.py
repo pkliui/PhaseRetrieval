@@ -2,12 +2,21 @@
 Scripts to run modules and functions for image pre-processing, phase retrieval and  post-processing of reconstructed images
 """
 
-import glob, os, shutil
+import glob, os, shutil, sys
 
 from PhaseRetrieval.classes.rspaceimage import RSpaceImage
 from PhaseRetrieval.classes.kspaceimage import KSpaceImage
 from PhaseRetrieval.classes.phaseretrieval import PhaseRetrieval
 from PhaseRetrieval.modules.postprocessing import phase_alignment_gerchberg_saxton
+
+class HiddenPrints:
+    def __enter__(self):
+        self._original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, 'w')
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        sys.stdout.close()
+        sys.stdout = self._original_stdout
 
 def preprocessing_script(datapath = None,
                            rs_filename = None,
@@ -317,7 +326,8 @@ def phase_alignment_gerchberg_saxton_script(datapath=None,
                                      symmetric_phase = True,
                                      plot_progress=True,
                                      plot_every_kth_iteration=1,
-                                     zoom=1):
+                                     zoom=1,
+                                     suppress_print = False):
     """
     Script for alignment of phase images yielded by Gechrberg-Saxton algorithm (here it is assumed that images to align are in csv file format).
     It is assumed that the corresponding amplitude is known and the phases are all in spatial registry.
@@ -358,6 +368,10 @@ def phase_alignment_gerchberg_saxton_script(datapath=None,
     zoom: int, optional
         Zoom factor to zoom into the 2D plot
         Default is 1 (no zoom)
+    suppress_print : bool, optional
+        False will block print calls.
+        True will let print calls to be displayed.
+        Default is False.
     """
     if datapath and folder_prefix and phase_prefix is not None:
         #
@@ -377,7 +391,6 @@ def phase_alignment_gerchberg_saxton_script(datapath=None,
                 amplitude_filenames_list = sorted(glob.glob(os.path.join(subdir_list[ii], '*.tif')), key=os.path.getmtime)
                 amplitude_filename = [file for file in amplitude_filenames_list if amplitude_prefix in file]
                 amplitude_filename = ''.join(amplitude_filename)
-                print(amplitude_filename)
             else:
                 raise ValueError("Filename of the amplitude data must be specified.")
 
@@ -385,14 +398,28 @@ def phase_alignment_gerchberg_saxton_script(datapath=None,
             # filter names of files containing phase images
             phase_filenames = [file for file in filenames_list if phase_prefix in file]
             #
-            # align phase images
-            phase_alignment_gerchberg_saxton(amplitude_filename=amplitude_filename,
-                                             phase_filenames=phase_filenames,
-                                             delimiter=delimiter,
-                                             ref_coordinates=ref_coordinates,
-                                             symmetric_phase=symmetric_phase,
-                                             plot_progress=plot_progress,
-                                             plot_every_kth_iteration=plot_every_kth_iteration,
-                                             zoom=zoom)
+            if suppress_print is True:
+                #
+                # align phase images
+                with HiddenPrints():
+                    phase_alignment_gerchberg_saxton(amplitude_filename=amplitude_filename,
+                                                     phase_filenames=phase_filenames,
+                                                     delimiter=delimiter,
+                                                     ref_coordinates=ref_coordinates,
+                                                     symmetric_phase=symmetric_phase,
+                                                     plot_progress=plot_progress,
+                                                     plot_every_kth_iteration=plot_every_kth_iteration,
+                                                     zoom=zoom)
+            else:
+                #
+                # align phase images
+                phase_alignment_gerchberg_saxton(amplitude_filename=amplitude_filename,
+                                                 phase_filenames=phase_filenames,
+                                                 delimiter=delimiter,
+                                                 ref_coordinates=ref_coordinates,
+                                                 symmetric_phase=symmetric_phase,
+                                                 plot_progress=plot_progress,
+                                                 plot_every_kth_iteration=plot_every_kth_iteration,
+                                                 zoom=zoom)
     else:
         raise ValueError('Invalid path! Provide path to the directory with data')

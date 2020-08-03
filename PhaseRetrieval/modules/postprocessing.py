@@ -129,7 +129,7 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
         if plot_progress is True:
             if (phase_idx + 1) % plot_every_kth_iteration == 0:
                 #
-                print("Image %d \r" % (phase_idx + 1), " (is being aligned)")
+                print("Image %d \r" % int((phase_idx + 1)), " (is being aligned)")
                 #
                 # some manipulations with phase distribution to be able to plot it weighted with amplitude values
                 # important to normalise to 1, otherwise the plot will not be displayed correctly!
@@ -170,10 +170,10 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
                 display.clear_output(wait=True)
                 plt.show()
             else:
-                print("Alignment of %d \r" % (phase_idx + 1) / len(phase_filenames),
+                print("Alignment of %d \r" % int((phase_idx + 1) / len(phase_filenames)),
                      " % of images completed")
         else:
-            print("Alignment of %d \r" % (phase_idx + 1) / len(phase_filenames),
+            print("Alignment of %d \r" % int((phase_idx + 1) / len(phase_filenames)),
                   " % of images completed")
         #
     #save aligned images
