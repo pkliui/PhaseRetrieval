@@ -32,6 +32,10 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
     phase_filenames : list
         List of paths to files with phase distributions to be aligned
         Default is None
+    num_files_to_align : int
+        Integer number of files with phase distributions to be aligned
+        If set to None, all files will be used for alignment.
+        Default is None.
     delimiter : str, optional
         Delimiter in csv files
         Default is '\t'
