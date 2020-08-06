@@ -36,7 +36,8 @@ def preprocessing_script(datapath = None,
                            ks_num_peaks=5,
                            npixels_pad_iter = None,
                            ks_noise_iter = None,
-                           rs_noise_iter=None):
+                           rs_noise_iter=None,
+                           suppress_print = False):
     """
     Script for image processing of object- and Fourier-domain images prior to application of phase retrieval algorithms.
     With options for various linear number of pixels and subtracted noise levels.
@@ -118,6 +119,11 @@ def preprocessing_script(datapath = None,
     ks_noise_iter : list of int
         List of integers denoting the noise levels to be stubtracted from the Fourier-domain image
         Default is None
+    ---
+    suppress_print : bool, optional
+        False will block print calls.
+        True will let print calls to be displayed.
+        Default is False.
     """
 
 # generate images with different linear number of pixels
@@ -128,7 +134,6 @@ def preprocessing_script(datapath = None,
 #
             # subtract noise in object domain
             for rs_noise in rs_noise_iter:
-                print('Processing images... Processing with linear number of pixels = ', npixels_pad,',Fourier-domain noise = ', ks_noise, ',Object-domain noise = ', rs_noise)
                 #
                 # change to data directory
                 os.chdir(datapath)
@@ -137,68 +142,136 @@ def preprocessing_script(datapath = None,
                 #
                 # read data, rotate and flip
                 # object-domain data
-                rs = RSpaceImage(filename=os.path.join(datapath, rs_filename),
-                                 delimiter=delimiter)
-                rs.rotate_image(estimate_only=False,
-                                plot_progress=False)
-                rs.flip_image(estimate_only=False,
-                              plot_progress=False)
-                ##Fourier-domain data
-                ks = KSpaceImage(filename=os.path.join(datapath, ks_filename),
-                                 delimiter=delimiter)
-                ks.rotate_image(estimate_only=False,
-                                plot_progress=False)
-                ks.flip_image(estimate_only=False,
-                              plot_progress=False)
                 #
-                # subtract noise in object domain
-                rs.subtract_background(counts=rs_noise,
-                                       estimate_only=False,
-                                       log_scale=True,
-                                       plot_progress=False)
-                #
-                # apply watershed segmentation in object domain and centre the image
-                rs.centre_image_watershed(linear_object_size=rs_linear_object_size,
-                                          npixels_pad=npixels_pad,
-                                          apodization=True,
-                                          plot_progress=False)
-                #
-                # resample in object domain to make sure the sizes of the pixels are congruent with the digital Fourier transform
-                npixels_final = rs.resample_image(fieldofview=ks_fieldofview,
-                                                  npixels_kspace=ks_npixels,
-                                                  pixelsize_dr0=rs_pixelsize,
-                                                  lambd=lambd,
-                                                  estimate_only=False)
-                #
-                # centre image in Fourier domain
-                ks.centre_image(estimate_only=False,
-                                centre=ks_centre,
-                                gaussian_filter=ks_gaussian_filter,
-                                sigma=ks_sigma,
-                                roi=ks_roi,
-                                min_distance=ks_min_distance,
-                                threshold_abs=ks_threshold_abs,
-                                num_peaks=ks_num_peaks,
-                                npixels_pad=npixels_final,
-                                plot_progress=False)
-                #
-                # subtract background in Fourier domain
-                ks.subtract_background(counts=ks_noise,
-                                       estimate_only=False,
-                                       plot_progress=False)
-                #
-                # fulfill Parseval's theorem
-                energy_rspace = sum(sum(rs.image))
-                ks.renormalise_image(energy_rspace)
-                #
-                # save images together with their metadata (same directory)
-                rs.save_as_tif(pathtosave=datapath,
-                               outputfilename = rs_filename[:-4] + "_Ntot" + str(npixels_pad) + "rsnoise" + str(
-                                   rs_noise) + "ksnoise" + str(ks_noise) + ".tif")
-                ks.save_as_tif(pathtosave=datapath,
-                               outputfilename = ks_filename[:-4] + "_Ntot" + str(npixels_pad) + "rsnoise" + str(
-                                   rs_noise) + "ksnoise" + str(ks_noise) + ".tif")
-    print('Image processing completed.')
+                if suppress_print is True:
+                    with HiddenPrints():
+                        rs = RSpaceImage(filename=os.path.join(datapath, rs_filename),
+                                         delimiter=delimiter)
+                        rs.rotate_image(estimate_only=False,
+                                        plot_progress=False)
+                        rs.flip_image(estimate_only=False,
+                                      plot_progress=False)
+                        ##Fourier-domain data
+                        ks = KSpaceImage(filename=os.path.join(datapath, ks_filename),
+                                         delimiter=delimiter)
+                        ks.rotate_image(estimate_only=False,
+                                        plot_progress=False)
+                        ks.flip_image(estimate_only=False,
+                                      plot_progress=False)
+                        #
+                        # subtract noise in object domain
+                        rs.subtract_background(counts=rs_noise,
+                                               estimate_only=False,
+                                               log_scale=True,
+                                               plot_progress=False)
+                        #
+                        # apply watershed segmentation in object domain and centre the image
+                        rs.centre_image_watershed(linear_object_size=rs_linear_object_size,
+                                                  npixels_pad=npixels_pad,
+                                                  apodization=True,
+                                                  plot_progress=False)
+                        #
+                        # resample in object domain to make sure the sizes of the pixels are congruent with the digital Fourier transform
+                        npixels_final = rs.resample_image(fieldofview=ks_fieldofview,
+                                                          npixels_kspace=ks_npixels,
+                                                          pixelsize_dr0=rs_pixelsize,
+                                                          lambd=lambd,
+                                                          estimate_only=False)
+                        #
+                        # centre image in Fourier domain
+                        ks.centre_image(estimate_only=False,
+                                        centre=ks_centre,
+                                        gaussian_filter=ks_gaussian_filter,
+                                        sigma=ks_sigma,
+                                        roi=ks_roi,
+                                        min_distance=ks_min_distance,
+                                        threshold_abs=ks_threshold_abs,
+                                        num_peaks=ks_num_peaks,
+                                        npixels_pad=npixels_final,
+                                        plot_progress=False)
+                        #
+                        # subtract background in Fourier domain
+                        ks.subtract_background(counts=ks_noise,
+                                               estimate_only=False,
+                                               plot_progress=False)
+                        #
+                        # fulfill Parseval's theorem
+                        energy_rspace = sum(sum(rs.image))
+                        ks.renormalise_image(energy_rspace)
+                        #
+                        # save images together with their metadata (same directory)
+                        rs.save_as_tif(pathtosave=datapath,
+                                       outputfilename = rs_filename[:-4] + "_Ntot" + str(npixels_pad) + "rsnoise" + str(
+                                           rs_noise) + "ksnoise" + str(ks_noise) + ".tif")
+                        ks.save_as_tif(pathtosave=datapath,
+                                       outputfilename = ks_filename[:-4] + "_Ntot" + str(npixels_pad) + "rsnoise" + str(
+                                           rs_noise) + "ksnoise" + str(ks_noise) + ".tif")
+                else:
+                    print('Processing images... Processing with linear number of pixels = ', npixels_pad,',Fourier-domain noise = ', ks_noise, ',Object-domain noise = ', rs_noise)
+                    #
+                    rs = RSpaceImage(filename=os.path.join(datapath, rs_filename),
+                                     delimiter=delimiter)
+                    rs.rotate_image(estimate_only=False,
+                                    plot_progress=False)
+                    rs.flip_image(estimate_only=False,
+                                  plot_progress=False)
+                    ##Fourier-domain data
+                    ks = KSpaceImage(filename=os.path.join(datapath, ks_filename),
+                                     delimiter=delimiter)
+                    ks.rotate_image(estimate_only=False,
+                                    plot_progress=False)
+                    ks.flip_image(estimate_only=False,
+                                  plot_progress=False)
+                    #
+                    # subtract noise in object domain
+                    rs.subtract_background(counts=rs_noise,
+                                           estimate_only=False,
+                                           log_scale=True,
+                                           plot_progress=False)
+                    #
+                    # apply watershed segmentation in object domain and centre the image
+                    rs.centre_image_watershed(linear_object_size=rs_linear_object_size,
+                                              npixels_pad=npixels_pad,
+                                              apodization=True,
+                                              plot_progress=False)
+                    #
+                    # resample in object domain to make sure the sizes of the pixels are congruent with the digital Fourier transform
+                    npixels_final = rs.resample_image(fieldofview=ks_fieldofview,
+                                                      npixels_kspace=ks_npixels,
+                                                      pixelsize_dr0=rs_pixelsize,
+                                                      lambd=lambd,
+                                                      estimate_only=False)
+                    #
+                    # centre image in Fourier domain
+                    ks.centre_image(estimate_only=False,
+                                    centre=ks_centre,
+                                    gaussian_filter=ks_gaussian_filter,
+                                    sigma=ks_sigma,
+                                    roi=ks_roi,
+                                    min_distance=ks_min_distance,
+                                    threshold_abs=ks_threshold_abs,
+                                    num_peaks=ks_num_peaks,
+                                    npixels_pad=npixels_final,
+                                    plot_progress=False)
+                    #
+                    # subtract background in Fourier domain
+                    ks.subtract_background(counts=ks_noise,
+                                           estimate_only=False,
+                                           plot_progress=False)
+                    #
+                    # fulfill Parseval's theorem
+                    energy_rspace = sum(sum(rs.image))
+                    ks.renormalise_image(energy_rspace)
+                    #
+                    # save images together with their metadata (same directory)
+                    rs.save_as_tif(pathtosave=datapath,
+                                   outputfilename=rs_filename[:-4] + "_Ntot" + str(npixels_pad) + "rsnoise" + str(
+                                       rs_noise) + "ksnoise" + str(ks_noise) + ".tif")
+                    ks.save_as_tif(pathtosave=datapath,
+                                   outputfilename=ks_filename[:-4] + "_Ntot" + str(npixels_pad) + "rsnoise" + str(
+                                       rs_noise) + "ksnoise" + str(ks_noise) + ".tif")
+
+                    print('Image processing completed.')
 
 def gerchberg_saxton_extrapolation_script(datapath = None,
                                    rs_prefix = None,
@@ -213,7 +286,8 @@ def gerchberg_saxton_extrapolation_script(datapath = None,
                                    object_amplitude = True,
                                    object_phase = True,
                                    filename = None,
-                                   rec_number=1):
+                                   rec_number=1,
+                                   suppress_print = False):
     """
     Script to launch GS algorithm with extrapolation and save reconstructed images.
     Customized for the case when image are saved in several folders (e.g. each containing images with different parameters)
@@ -268,6 +342,10 @@ def gerchberg_saxton_extrapolation_script(datapath = None,
     rec_number : int, optional
         Number of times the algorithm is run with random initial phases = number of reconstructions
         Default is 1.
+    suppress_print : bool, optional
+        False will block print calls.
+        True will let print calls to be displayed.
+        Default is False.
     """
     if files_extension is ".*tif" or "*.csv":
         # read file names
@@ -304,16 +382,30 @@ def gerchberg_saxton_extrapolation_script(datapath = None,
             #
             #phase retrieval
             for ii in range(0, rec_number):
-                pr.gerchberg_saxton_extrapolation(gs_steps = gs_steps,
-                                                  plot_progress = plot_progress,
-                                                  plot_every_kth_iteration = plot_every_kth_iteration,
-                                                  zoom = zoom)##
-                pr.save_as_csv(filename = filename,
-                               pathtosave = os.path.join(datapath, folderName),
-                               Fourier_amplitude = Fourier_amplitude,
-                               Fourier_phase = Fourier_phase,
-                               object_amplitude = object_amplitude,
-                               object_phase = object_phase)
+                #
+                if suppress_print is True:
+                    with HiddenPrints():
+                        pr.gerchberg_saxton_extrapolation(gs_steps = gs_steps,
+                                                          plot_progress = plot_progress,
+                                                          plot_every_kth_iteration = plot_every_kth_iteration,
+                                                          zoom = zoom)##
+                        pr.save_as_csv(filename = filename,
+                                       pathtosave = os.path.join(datapath, folderName),
+                                       Fourier_amplitude = Fourier_amplitude,
+                                       Fourier_phase = Fourier_phase,
+                                       object_amplitude = object_amplitude,
+                                       object_phase = object_phase)
+                else:
+                    pr.gerchberg_saxton_extrapolation(gs_steps=gs_steps,
+                                                      plot_progress=plot_progress,
+                                                      plot_every_kth_iteration=plot_every_kth_iteration,
+                                                      zoom=zoom)  ##
+                    pr.save_as_csv(filename=filename,
+                                   pathtosave=os.path.join(datapath, folderName),
+                                   Fourier_amplitude=Fourier_amplitude,
+                                   Fourier_phase=Fourier_phase,
+                                   object_amplitude=object_amplitude,
+                                   object_phase=object_phase)
     else:
         raise ValueError("file_extension argument must be either 'tif' or 'csv'! ")
 
