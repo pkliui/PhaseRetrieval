@@ -131,6 +131,9 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
         elif phase_idx > 0 and phase_idx == len_phase_filenames - 1:
             print("averaging ")
             aligned_phases = aligned_phases / len(phase_filenames) - int(symmetric_phase) * 0.5 * np.max(np.max(aligned_phases)) / len(phase_filenames)
+        # finish alignment
+        else:
+            break
             #
             # plot progress
         if plot_progress is True:
