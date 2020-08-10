@@ -537,8 +537,7 @@ class PhaseRetrieval(object):
         #
         # pixel size in Fourier domain
         print(self.metadata_rspace)
-        dk = (2 * np.pi / self.metadata_rspace['Wavelength of light, m']) \
-             * np.sin(self.metadata_rspace['Field of view, deg'] * np.pi / 180) / self.metadata_rspace['Number of pixels within the field of view']
+        dk = (2 * np.pi / self.metadata_rspace['Wavelength of light, m']) * np.sin(self.metadata_rspace['Field of view, deg'] * np.pi / 180) / self.metadata_rspace['Number of pixels within the field of view']
         #
         #linear oversampling
         oversampling = 2 * np.pi / (dk * self.metadata_rspace['Linear size of the object, m'])
