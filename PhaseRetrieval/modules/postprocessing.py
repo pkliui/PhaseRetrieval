@@ -187,7 +187,62 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
                   " % of images completed")
         #
     #save aligned images
-    filename_full = amplitude_filename[:-4] + '_phase.csv'
+    filename_full = amplitude_filename[:-14] + '_phase.csv'
     np.savetxt(filename_full, aligned_phases, delimiter='\t')
     print('Aligned phase distribution was saved as ', filename_full)
     #
+
+
+
+def plot_reconstruction(amplitude_filename = None, phase_filename = None, delimiter = ',', zoom = 1):
+    #
+    # read amplitude image
+    if os.path.exists(amplitude_filename):
+        # read amplitude image
+        if amplitude_filename[-4:] == '.tif':
+            # amplitude = io.imread(amplitude_filename)
+            amplitude = np.asarray(Image.open(amplitude_filename))
+        elif amplitude_filename[-4:] == '.csv':
+            amplitude = pd.read_csv(amplitude_filename, delimiter='\t', header=None).values
+        else:
+            raise ValueError("Data must be either in tif or csv format.")
+    else:
+        raise ValueError("Path to an amplitude file does not exist")
+    #
+    #read phases
+    if phase_filename[-4:] == ".csv":
+        phase = pd.read_csv(phase_filename, delimiter=delimiter, header=None)
+        phase = phase.values
+    else:
+        raise ValueError("Phase data must be in csv format!")
+    #
+    phase_weighted = plt.cm.bwr(
+        rescale_intensity(- phase.min() + phase, out_range=(0, 1)))
+    phase_weighted[..., -1] = rescale_intensity(amplitude, out_range=(0, 1))
+    #
+    fig, ax = plt.subplots(1, 2, figsize=(10, 20))
+    ax = ax.ravel()
+    theshape = phase_weighted.shape
+    #
+    # current offset phase
+    im00 = ax[0].imshow(amplitude)
+    ax[0].set_title("amplitude")
+    plt.colorbar(im00, ax=ax[0], fraction=0.046, pad=0.04)
+    ax[0].axis([theshape[0] // 2 - theshape[0] // 2 // zoom,
+                theshape[0] // 2 + theshape[0] // 2 // zoom,
+                theshape[1] // 2 - theshape[1] // 2 // zoom,
+                theshape[1] // 2 + theshape[1] // 2 // zoom])
+    #
+    # computed Fourier phase
+    im01 = ax[1].imshow(phase_weighted, cmap='seismic', vmin=phase.min(),
+                        vmax=phase.max())
+    ax[1].set_title("weighted phase")
+    plt.colorbar(im01, ax=ax[1], fraction=0.046, pad=0.04)
+    ax[1].axis([theshape[0] // 2 - theshape[0] // 2 // zoom,
+                theshape[0] // 2 + theshape[0] // 2 // zoom,
+                theshape[1] // 2 - theshape[1] // 2 // zoom,
+                theshape[1] // 2 + theshape[1] // 2 // zoom])
+    #
+    fig.tight_layout()
+    display.clear_output(wait=True)
+    plt.show()
