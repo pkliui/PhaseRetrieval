@@ -362,7 +362,7 @@ def gerchberg_saxton_script(datapath = None,
         #first go through all object-domain files
         for rs_idx, rs_file in enumerate(sorted(rs_filenames)):
             #create folder having the name of  the current  file
-            folderName = rs_file[-len(str(rs_filenames))+4: -4]
+            folderName = rs_file[-len(str(rs_filenames))+4: -14]
             print(folderName)
             #
             #copy object-domain data
@@ -617,13 +617,16 @@ def phase_alignment_gerchberg_saxton_script(datapath=None,
             #
             # read file names in the directory (sorted by time saved)
             filenames_list = sorted(glob.glob(os.path.join(subdir_list[ii], '*.csv')), key=os.path.getmtime)
+            print(filenames_list)
             #
             # load amplitude image
             if amplitude_prefix is not None:
                 # filter names of files containing amplitude image
                 amplitude_filenames_list = sorted(glob.glob(os.path.join(subdir_list[ii], '*.tif')), key=os.path.getmtime)
+                print(amplitude_filenames_list)
                 amplitude_filename = [file for file in amplitude_filenames_list if amplitude_prefix in file]
                 amplitude_filename = ''.join(amplitude_filename)
+                print(amplitude_filename)
             else:
                 raise ValueError("Filename of the amplitude data must be specified.")
 
