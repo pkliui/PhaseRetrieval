@@ -201,11 +201,11 @@ def preprocessing_script(datapath = None,
                         #
                         # save images together with their metadata (same directory)
                         rs.save_as_tif(pathtosave=datapath,
-                                       outputfilename = rs_filename[:-4] + "_Ntot" + str(npixels_pad) + "rsnoise" + str(
-                                           rs_noise) + "ksnoise" + str(ks_noise) + ".tif")
+                                       outputfilename = "Ntot" + str(npixels_pad) + "rsnoise" + str(
+                                           rs_noise) + "ksnoise" + str(ks_noise) + "_" + rs_filename[:-4] + "_amplitude.tif")
                         ks.save_as_tif(pathtosave=datapath,
-                                       outputfilename = ks_filename[:-4] + "_Ntot" + str(npixels_pad) + "rsnoise" + str(
-                                           rs_noise) + "ksnoise" + str(ks_noise) + ".tif")
+                                       outputfilename = "Ntot" + str(npixels_pad) + "rsnoise" + str(
+                                           rs_noise) + "ksnoise" + str(ks_noise) + "_" + ks_filename[:-4] + "_amplitude.tif")
                 else:
                     print('Processing images... Processing with linear number of pixels = ', npixels_pad,',Fourier-domain noise = ', ks_noise, ',Object-domain noise = ', rs_noise)
                     #
@@ -265,13 +265,153 @@ def preprocessing_script(datapath = None,
                     #
                     # save images together with their metadata (same directory)
                     rs.save_as_tif(pathtosave=datapath,
-                                   outputfilename=rs_filename[:-4] + "_Ntot" + str(npixels_pad) + "rsnoise" + str(
-                                       rs_noise) + "ksnoise" + str(ks_noise) + ".tif")
+                                   outputfilename = "Ntot" + str(npixels_pad) + "rsnoise" + str(
+                                       rs_noise) + "ksnoise" + str(ks_noise) + "_" +rs_filename[:-4] + "_amplitude.tif")
                     ks.save_as_tif(pathtosave=datapath,
-                                   outputfilename=ks_filename[:-4] + "_Ntot" + str(npixels_pad) + "rsnoise" + str(
-                                       rs_noise) + "ksnoise" + str(ks_noise) + ".tif")
+                                   outputfilename = "Ntot" + str(npixels_pad) + "rsnoise" + str(
+                                       rs_noise) + "ksnoise" + str(ks_noise) + "_" + ks_filename[:-4] + "_amplitude.tif")
 
                     print('Image processing completed.')
+
+
+def gerchberg_saxton_script(datapath = None,
+                                   rs_prefix = None,
+                                   ks_prefix = None,
+                                   files_extension = "*.tif",
+                                   gs_steps = 100,
+                                   plot_progress = False,
+                                   plot_every_kth_iteration = 1,
+                                   zoom=1,
+                                   Fourier_amplitude = True,
+                                   Fourier_phase = True,
+                                   object_amplitude = True,
+                                   object_phase = True,
+                                   filename = None,
+                                   rec_number=1,
+                                   suppress_print = False):
+    """
+    Script to launch GS algorithm and save reconstructed images.
+    Customized for the case when image are saved in several folders (e.g. each containing images with different parameters)
+    Reconstructed images are saved as csv (no metadata) in individual folders containing images of the same kind (e.g. equal number of pixels)
+    ---
+    Parameters
+    ---
+    files_extension: {"*.tif", "*.csv"}
+        Extension of raw images.
+        Must be chosen from the given set of extensions, i.e. either "*.tif" or "*.csv".
+        Default is "*.tif".
+    ---Initialisation of PhaseRetrieval class-related:---
+    datapath: str
+        Path used to load data (the same as used to load raw data).
+        Default is None.
+    rs_prefix: str
+        Prefix common to names of the files containing object-domain images.
+        Default is None.
+    ks_filename: str
+        Prefix common to names of the files containing Fourier-domain images.
+        Default is None.
+    ---
+    ---PhaseRetrieval.gerchberg_saxton_extrapolation method-related:---
+    gs_steps: int
+        Number of iterations in GS algorithm
+        Default is None.
+    plot_progress : bool, optional
+        False will prevent algorithm from plotting the progress.
+        True will plot the progress of the algorithm.
+        Default is False.
+    plot_every_kth_iteration : int, optional
+        Plot the progress each k-th iteration, where k=plot_every_kth_iteration
+        Default is 1.
+    zoom: int, optional
+        Zoom factor to zoom into the 2D plot
+        Default is 1 (no zoom)
+    ---
+    ---PhaseRetrieval.save_as_tif method-related:---
+    Fourier_amplitude : bool, optional
+        If set to True, constrained Fourier amplitude will be saved
+        Default is True
+    Fourier_phase : bool, optional
+        If set to True, constrained(=computed) Fourier phase will be saved
+        Default is True
+    object_amplitude : bool, optional
+        If set to True, computed object amplitude will be saved
+        Default is True
+    object_phase : bool, optional
+        If set to True, computed object phase will be saved
+        Default is True
+    ---
+    rec_number : int, optional
+        Number of times the algorithm is run with random initial phases = number of reconstructions
+        Default is 1.
+    suppress_print : bool, optional
+        False will block print calls.
+        True will let print calls to be displayed.
+        Default is False.
+    """
+    if files_extension is ".*tif" or "*.csv":
+        # read file names
+        filenames_list = sorted(glob.glob(os.path.join(datapath, files_extension)), key=os.path.getmtime)
+        print(filenames_list)
+        # object-domain filenames
+        rs_filenames = [file for file in filenames_list if rs_prefix in file]
+        print(rs_filenames)
+        # Fourier-domain filenames
+        ks_filenames = [file for file in filenames_list if ks_prefix in file]
+        print(ks_filenames)
+
+        #first go through all object-domain files
+        for rs_idx, rs_file in enumerate(sorted(rs_filenames)):
+            #create folder having the name of  the current  file
+            folderName = rs_file[-len(str(rs_filenames))+4: -4]
+            print(folderName)
+            #
+            #copy object-domain data
+            if not os.path.exists(folderName):
+                os.mkdir(folderName)
+                shutil.copy(rs_file, folderName)
+            else:
+                shutil.copy(rs_file, folderName)
+            #
+            #now go through all Fourier-domain files and copy them to the respective folders
+            for ks_file in sorted(ks_filenames):
+                ks_file = ks_filenames[rs_idx]
+                if os.path.exists(folderName):
+                    shutil.copy(ks_file, folderName)
+                else:
+                    raise ValueError("Invalid path! Object- and Fourier domain filenames must have the same endings!")
+                        #initialise phase retrieval class
+            #
+            #initialise phase retrieval class
+            pr = PhaseRetrieval(filename_rspace=rs_file, filename_kspace=ks_file)
+            #
+            #phase retrieval
+            for ii in range(0, rec_number):
+                #
+                if suppress_print is True:
+                    with HiddenPrints():
+                        pr.gerchberg_saxton(gs_steps = gs_steps,
+                                                          plot_progress = plot_progress,
+                                                          plot_every_kth_iteration = plot_every_kth_iteration,
+                                                          zoom = zoom)##
+                        pr.save_as_csv(filename = filename,
+                                       pathtosave = os.path.join(datapath, folderName),
+                                       Fourier_amplitude = Fourier_amplitude,
+                                       Fourier_phase = Fourier_phase,
+                                       object_amplitude = object_amplitude,
+                                       object_phase = object_phase)
+                else:
+                    pr.gerchberg_saxton(gs_steps=gs_steps,
+                                                      plot_progress=plot_progress,
+                                                      plot_every_kth_iteration=plot_every_kth_iteration,
+                                                      zoom=zoom)  ##
+                    pr.save_as_csv(filename=filename,
+                                   pathtosave=os.path.join(datapath, folderName),
+                                   Fourier_amplitude=Fourier_amplitude,
+                                   Fourier_phase=Fourier_phase,
+                                   object_amplitude=object_amplitude,
+                                   object_phase=object_phase)
+    else:
+        raise ValueError("file_extension argument must be either 'tif' or 'csv'! ")
 
 def gerchberg_saxton_extrapolation_script(datapath = None,
                                    rs_prefix = None,
@@ -295,7 +435,7 @@ def gerchberg_saxton_extrapolation_script(datapath = None,
     ---
     Parameters
     ---
-        files_extension: {"*.tif", "*.csv"}
+    files_extension: {"*.tif", "*.csv"}
         Extension of raw images.
         Must be chosen from the given set of extensions, i.e. either "*.tif" or "*.csv".
         Default is "*.tif".
