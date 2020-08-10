@@ -351,19 +351,15 @@ def gerchberg_saxton_script(datapath = None,
     if files_extension is ".*tif" or "*.csv":
         # read file names
         filenames_list = sorted(glob.glob(os.path.join(datapath, files_extension)), key=os.path.getmtime)
-        print(filenames_list)
         # object-domain filenames
         rs_filenames = [file for file in filenames_list if rs_prefix in file]
-        print(rs_filenames)
         # Fourier-domain filenames
         ks_filenames = [file for file in filenames_list if ks_prefix in file]
-        print(ks_filenames)
 
         #first go through all object-domain files
         for rs_idx, rs_file in enumerate(sorted(rs_filenames)):
             #create folder having the name of  the current  file
             folderName = rs_file[-len(str(rs_filenames))+4: -14]
-            print(folderName)
             #
             #copy object-domain data
             if not os.path.exists(folderName):
