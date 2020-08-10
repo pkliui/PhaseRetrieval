@@ -438,10 +438,10 @@ class KSpaceImage(object):
                              fontsize=11,
                              color='r')
                     plt.title('Original image, ROI and local maxima')
-                    plt.axis([self.image.shape[0] // 2 - self.image.shape[0] // 2 // zoom,
-                              self.image.shape[0] // 2 + self.image.shape[0] // 2 // zoom,
-                              self.image.shape[1] // 2 - self.image.shape[1] // 2 // zoom,
-                              self.image.shape[1] // 2 + self.image.shape[1] // 2 // zoom])
+                    plt.axis([self.image.shape[1] // 2 - self.image.shape[1] // 2 // zoom,
+                              self.image.shape[1] // 2 + self.image.shape[1] // 2 // zoom,
+                              self.image.shape[0] // 2 - self.image.shape[0] // 2 // zoom,
+                              self.image.shape[0] // 2 + self.image.shape[0] // 2 // zoom])
                     plt.colorbar(im)
                     plt.show()
                 #
@@ -478,10 +478,10 @@ class KSpaceImage(object):
                                  color='r')
                         plt.title('Centred image')
                         plt.colorbar()
-                        plt.axis([im_centred.shape[0] // 2 - im_centred.shape[0] // 2 // (zoom * im_centred.shape[0]/self.image.shape[0]),
-                                  im_centred.shape[0] // 2 + im_centred.shape[0] // 2 // (zoom * im_centred.shape[0]/self.image.shape[0]),
-                                  im_centred.shape[1] // 2 - im_centred.shape[1] // 2 // (zoom * im_centred.shape[0]/self.image.shape[0]),
-                                  im_centred.shape[1] // 2 + im_centred.shape[1] // 2 // (zoom * im_centred.shape[0]/self.image.shape[0])])
+                        plt.axis([im_centred.shape[1] // 2 - im_centred.shape[1] // 2 // (zoom * im_centred.shape[1]/self.image.shape[0]),
+                                  im_centred.shape[1] // 2 + im_centred.shape[1] // 2 // (zoom * im_centred.shape[1]/self.image.shape[0]),
+                                  im_centred.shape[0] // 2 - im_centred.shape[0] // 2 // (zoom * im_centred.shape[1]/self.image.shape[0]),
+                                  im_centred.shape[0] // 2 + im_centred.shape[0] // 2 // (zoom * im_centred.shape[1]/self.image.shape[0])])
                         plt.show()
                     self.image = im_centred
                     self.metadata['Image centred and padded?'] = 'yes'
