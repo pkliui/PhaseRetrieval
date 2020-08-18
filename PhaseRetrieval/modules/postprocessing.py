@@ -73,7 +73,6 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
         raise ValueError("Path to an amplitude file does not exist")
     #
     for phase_idx, phase_file in enumerate(sorted(phase_filenames)):
-        print(phase_file)
         time.sleep(2)
         #
         # read phase images
@@ -98,6 +97,7 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
             len_phase_filenames = num_files_to_align
         #
         if phase_idx == 0:
+            print(phase_file)
             # no aligned / reference phases at first
             reference_phase = np.zeros(phase.shape)
             #
@@ -108,6 +108,7 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
             aligned_phases = reference_phase + offset_phase
         #
         elif phase_idx > 0 and phase_idx < len_phase_filenames - 1:
+            print(phase_file)
             # set the reference phase to be equal to the sum of already aligned phases
             reference_phase = np.copy(aligned_phases)
             #
@@ -129,8 +130,9 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
         #
         #compute the average of the aligned phases
         elif phase_idx > 0 and phase_idx == len_phase_filenames - 1:
+            print(phase_file)
             print("averaging ")
-            aligned_phases = aligned_phases / len(phase_filenames) - int(symmetric_phase) * 0.5 * np.max(np.max(aligned_phases)) / len(phase_filenames)
+            aligned_phases_norm = aligned_phases / len_phase_filenames - int(symmetric_phase) * 0.5 * np.max(np.max(aligned_phases)) / len_phase_filenames
         # finish alignment
         else:
             break
@@ -149,7 +151,7 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
                 offset_phase_weighted[..., -1] = rescale_intensity(amplitude, out_range=(0, 1))
                 #
                 aligned_phases_weighted = plt.cm.bwr(
-                    rescale_intensity(- aligned_phases.min() + aligned_phases, out_range=(0, 1)))
+                    rescale_intensity(- aligned_phases_norm.min() + aligned_phases_norm, out_range=(0, 1)))
                 aligned_phases_weighted[..., -1] = rescale_intensity(amplitude, out_range=(0, 1))
                 #
                 fig, ax = plt.subplots(1, 2, figsize=(10, 20))
@@ -167,8 +169,8 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
                             theshape[1] // 2 + theshape[1] // 2 // zoom])
                 #
                 # computed Fourier phase
-                im01 = ax[1].imshow(aligned_phases_weighted, cmap='seismic', vmin=aligned_phases.min(),
-                                    vmax=aligned_phases.max())
+                im01 = ax[1].imshow(aligned_phases_weighted, cmap='seismic', vmin=aligned_phases_norm.min(),
+                                    vmax=aligned_phases_norm.max())
                 ax[1].set_title("aligned phase")
                 plt.colorbar(im01, ax=ax[1], fraction=0.046, pad=0.04)
                 ax[1].axis([theshape[0] // 2 - theshape[0] // 2 // zoom,
@@ -188,22 +190,24 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
         #
     #save aligned images
     filename_full = amplitude_filename[:-14] + '_phase.csv'
-    np.savetxt(filename_full, aligned_phases, delimiter='\t')
+    np.savetxt(filename_full, aligned_phases_norm, delimiter='\t')
     print('Aligned phase distribution was saved as ', filename_full)
     #
 
 
 
-def plot_reconstruction(amplitude_filename = None, phase_filename = None, delimiter = ',', zoom = 1):
+def plot_reconstruction(amplitude_filename = None, phase_filename = None, delimiter = ',', zoom = 1, save_as_eps = False):
     #
     # read amplitude image
     if os.path.exists(amplitude_filename):
         # read amplitude image
         if amplitude_filename[-4:] == '.tif':
             # amplitude = io.imread(amplitude_filename)
-            amplitude = np.asarray(Image.open(amplitude_filename))
+            amplitude0 = np.asarray(Image.open(amplitude_filename))
+            amplitude = amplitude0 / np.max(amplitude0)
         elif amplitude_filename[-4:] == '.csv':
-            amplitude = pd.read_csv(amplitude_filename, delimiter='\t', header=None).values
+            amplitude0 = pd.read_csv(amplitude_filename, delimiter='\t', header=None).values
+            amplitude = amplitude0 / np.max(amplitude0)
         else:
             raise ValueError("Data must be either in tif or csv format.")
     else:
@@ -242,7 +246,17 @@ def plot_reconstruction(amplitude_filename = None, phase_filename = None, delimi
                 theshape[0] // 2 + theshape[0] // 2 // zoom,
                 theshape[1] // 2 - theshape[1] // 2 // zoom,
                 theshape[1] // 2 + theshape[1] // 2 // zoom])
+
+    if save_as_eps is True:
+        #ax[1].set_rasterization_zorder(0)
+        ax[1].set_rasterized(True)
+        #plt.savefig(phase_filename[:-4] + '.eps', format = 'eps', bbox_inches='tight', pad_inches=0)
+        plt.savefig(phase_filename[:-4] + '.eps', format = 'eps', bbox_inches='tight', pad_inches=0)
+        #plt.imsave(phase_filename[:-4] + '.png', phase_weighted)
+    else:
+        pass
+
     #
     fig.tight_layout()
-    display.clear_output(wait=True)
+    #display.clear_output(wait=True)
     plt.show()
