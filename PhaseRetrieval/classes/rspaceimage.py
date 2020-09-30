@@ -38,8 +38,9 @@ class RSpaceImage(object):
             If `image` argument is provided, the image will be initialized from the `image` argument.
             Default is None.
         delimiter: str, optional
-            Delimiter used in the csv file (need to be specified if data are loaded from a csv file).
-            If None, an empty class is created.
+            Delimiter used in the csv file
+            Delimiter needs to be specified if the data are to be loaded from a csv file.
+            If None, then it is assumed that the data are to be loaded from a tif file.
             Default is None.
         image : ndarray, optional
             2D array to initialize the image.
@@ -67,8 +68,11 @@ class RSpaceImage(object):
         self.metadata["Parseval's theorem fulfilled?"] = None
         #
         if self.image is None and filename is not None and delimiter is not None and os.path.exists(filename):
-            # then read data from file
+            # then read data from csv file
             self.read_from_csv(filename, delimiter)
+        elif self.image is None and filename is not None and delimiter is None and os.path.exists(filename):
+            # then read data from tif file
+            self.read_from_tif(filename)
 
     def __repr__(self):
         return "2D object-domain image"
