@@ -394,7 +394,7 @@ class RSpaceImage(object):
                                                         mode='wrap',
                                                         preserve_range=True)
                         image_apodization_filter = gaussian(image_apodization_filter,
-                                                            sigma=1,
+                                                            sigma=3,
                                                             preserve_range=True,
                                                             truncate=2.0)
                         image_apodization_filter = image_apodization_filter / np.max(np.max(image_apodization_filter))
