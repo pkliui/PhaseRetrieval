@@ -414,7 +414,7 @@ def gerchberg_saxton_extrapolation_script(datapath = None,
                                    ks_prefix = None,
                                    files_extension = "*.tif",
                                    gs_steps = 100,
-                                   plot_progress = False,
+                                   plot_progress = True,
                                    plot_every_kth_iteration = 1,
                                    zoom=1,
                                    Fourier_amplitude = True,
@@ -423,7 +423,7 @@ def gerchberg_saxton_extrapolation_script(datapath = None,
                                    object_phase = True,
                                    filename = None,
                                    rec_number=1,
-                                   suppress_print = False):
+                                   print_progress = True):
     """
     Script to launch GS algorithm with extrapolation and save reconstructed images.
     Customized for the case when image are saved in several folders (e.g. each containing images with different parameters)
@@ -478,7 +478,7 @@ def gerchberg_saxton_extrapolation_script(datapath = None,
     rec_number : int, optional
         Number of times the algorithm is run with random initial phases = number of reconstructions
         Default is 1.
-    suppress_print : bool, optional
+    print_progress : bool, optional
         False will block print calls.
         True will let print calls to be displayed.
         Default is False.
@@ -490,12 +490,12 @@ def gerchberg_saxton_extrapolation_script(datapath = None,
         rs_filenames = [file for file in filenames_list if rs_prefix in file]
         # Fourier-domain filenames
         ks_filenames = [file for file in filenames_list if ks_prefix in file]
-
+        #
         #first go through all object-domain files
         for rs_idx, rs_file in enumerate(sorted(rs_filenames)):
             #
             #create folders with respective file names
-            folderName = rs_file[-34:-4]
+            folderName = os.path.basename(rs_file)[0:-4]
             #
             #copy object-domain data
             if not os.path.exists(folderName):
@@ -519,29 +519,29 @@ def gerchberg_saxton_extrapolation_script(datapath = None,
             #phase retrieval
             for ii in range(0, rec_number):
                 #
-                if suppress_print is True:
-                    with HiddenPrints():
-                        pr.gerchberg_saxton_extrapolation(gs_steps = gs_steps,
-                                                          plot_progress = plot_progress,
-                                                          plot_every_kth_iteration = plot_every_kth_iteration,
-                                                          zoom = zoom)##
-                        pr.save_as_csv(filename = filename,
-                                       pathtosave = os.path.join(datapath, folderName),
-                                       Fourier_amplitude = Fourier_amplitude,
-                                       Fourier_phase = Fourier_phase,
-                                       object_amplitude = object_amplitude,
-                                       object_phase = object_phase)
+                if print_progress is True:
+                    pr.gerchberg_saxton_extrapolation(gs_steps = gs_steps,
+                                                      plot_progress = plot_progress,
+                                                      plot_every_kth_iteration = plot_every_kth_iteration,
+                                                      zoom = zoom)##
+                    pr.save_as_csv(filename = filename,
+                                   pathtosave = os.path.join(datapath, folderName),
+                                   Fourier_amplitude = Fourier_amplitude,
+                                   Fourier_phase = Fourier_phase,
+                                   object_amplitude = object_amplitude,
+                                   object_phase = object_phase)
                 else:
-                    pr.gerchberg_saxton_extrapolation(gs_steps=gs_steps,
-                                                      plot_progress=plot_progress,
-                                                      plot_every_kth_iteration=plot_every_kth_iteration,
-                                                      zoom=zoom)  ##
-                    pr.save_as_csv(filename=filename,
-                                   pathtosave=os.path.join(datapath, folderName),
-                                   Fourier_amplitude=Fourier_amplitude,
-                                   Fourier_phase=Fourier_phase,
-                                   object_amplitude=object_amplitude,
-                                   object_phase=object_phase)
+                    with HiddenPrints():
+                        pr.gerchberg_saxton_extrapolation(gs_steps=gs_steps,
+                                                          plot_progress=plot_progress,
+                                                          plot_every_kth_iteration=plot_every_kth_iteration,
+                                                          zoom=zoom)  ##
+                        pr.save_as_csv(filename=filename,
+                                       pathtosave=os.path.join(datapath, folderName),
+                                       Fourier_amplitude=Fourier_amplitude,
+                                       Fourier_phase=Fourier_phase,
+                                       object_amplitude=object_amplitude,
+                                       object_phase=object_phase)
     else:
         raise ValueError("file_extension argument must be either 'tif' or 'csv'! ")
 
@@ -556,7 +556,7 @@ def phase_alignment_gerchberg_saxton_script(datapath=None,
                                      plot_progress=True,
                                      plot_every_kth_iteration=1,
                                      zoom=1,
-                                     suppress_print = False):
+                                     print_progress = True):
     """
     Script for alignment of phase images yielded by Gechrberg-Saxton algorithm (here it is assumed that images to align are in csv file format).
     It is assumed that the corresponding amplitude is known and the phases are all in spatial registry.
@@ -597,7 +597,7 @@ def phase_alignment_gerchberg_saxton_script(datapath=None,
     zoom: int, optional
         Zoom factor to zoom into the 2D plot
         Default is 1 (no zoom)
-    suppress_print : bool, optional
+    print_progress : bool, optional
         False will block print calls.
         True will let print calls to be displayed.
         Default is False.
@@ -618,9 +618,13 @@ def phase_alignment_gerchberg_saxton_script(datapath=None,
             # load amplitude image
             if amplitude_prefix is not None:
                 # filter names of files containing amplitude image
-                amplitude_filenames_list = sorted(glob.glob(os.path.join(subdir_list[ii], '*.tif')), key=os.path.getmtime)
+                amplitude_filenames_list = sorted(glob.glob(os.path.join(subdir_list[ii], amplitude_prefix)), key=os.path.getmtime)
+                #amplitude_filenames_list = sorted(glob.glob(os.path.join(subdir_list[ii], '*.tif')), key=os.path.getmtime)
+
                 print(amplitude_filenames_list)
-                amplitude_filename = [file for file in amplitude_filenames_list if amplitude_prefix in file]
+                amplitude_filename = [file for file in amplitude_filenames_list]
+                #amplitude_filename = [file for file in amplitude_filenames_list if amplitude_prefix in file ]
+
                 amplitude_filename = ''.join(amplitude_filename)
                 print(amplitude_filename)
             else:
@@ -629,23 +633,19 @@ def phase_alignment_gerchberg_saxton_script(datapath=None,
             #
             # filter names of files containing phase images
             phase_filenames = [file for file in filenames_list if phase_prefix in file]
+            print(phase_filenames)
             #
-            if suppress_print is True:
-                #
-                # align phase images
-                with HiddenPrints():
-                    phase_alignment_gerchberg_saxton(amplitude_filename=amplitude_filename,
-                                                     phase_filenames=phase_filenames,
-                                                     num_files_to_align=num_files_to_align,
-                                                     delimiter=delimiter,
-                                                     ref_coordinates=ref_coordinates,
-                                                     symmetric_phase=symmetric_phase,
-                                                     plot_progress=plot_progress,
-                                                     plot_every_kth_iteration=plot_every_kth_iteration,
-                                                     zoom=zoom)
+            if print_progress is True:
+                phase_alignment_gerchberg_saxton(amplitude_filename=amplitude_filename,
+                                                 phase_filenames=phase_filenames,
+                                                 num_files_to_align=num_files_to_align,
+                                                 delimiter=delimiter,
+                                                 ref_coordinates=ref_coordinates,
+                                                 symmetric_phase=symmetric_phase,
+                                                 plot_progress=plot_progress,
+                                                 plot_every_kth_iteration=plot_every_kth_iteration,
+                                                 zoom=zoom)
             else:
-                #
-                # align phase images
                 phase_alignment_gerchberg_saxton(amplitude_filename=amplitude_filename,
                                                  phase_filenames=phase_filenames,
                                                  num_files_to_align=num_files_to_align,
