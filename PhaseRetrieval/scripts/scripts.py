@@ -348,66 +348,66 @@ def gerchberg_saxton_script(datapath = None,
         True will let print calls to be displayed.
         Default is False.
     """
-    if files_extension is ".*tif" or "*.csv":
-        # read file names
-        filenames_list = sorted(glob.glob(os.path.join(datapath, files_extension)), key=os.path.getmtime)
-        # object-domain filenames
-        rs_filenames = [file for file in filenames_list if rs_prefix in file]
-        # Fourier-domain filenames
-        ks_filenames = [file for file in filenames_list if ks_prefix in file]
+    # read file names
+    filenames_list = sorted(glob.glob(os.path.join(datapath, files_extension)), key=os.path.getmtime)
+    print(filenames_list)
+    # object-domain filenames
+    rs_filenames = sorted([file for file in filenames_list if rs_prefix in file], key=os.path.getmtime)
+    print(enumerate(sorted(rs_filenames)))
+    # Fourier-domain filenames
+    ks_filenames = sorted([file for file in filenames_list if ks_prefix in file], key=os.path.getmtime)
+    print(enumerate(sorted(ks_filenames)))
 
-        #first go through all object-domain files
-        for rs_idx, rs_file in enumerate(sorted(rs_filenames)):
-            #create folder having the name of  the current  file
-            folderName = rs_file[-len(str(rs_filenames))+4: -14]
-            #
-            #copy object-domain data
-            if not os.path.exists(folderName):
-                os.mkdir(folderName)
-                shutil.copy(rs_file, folderName)
+    #first go through all object-domain files
+    for rs_idx, rs_file in enumerate(rs_filenames):
+        #create folder having the name of  the current  file
+        folderName = rs_file[-len(str(rs_filenames))+4: -14]
+        #
+        #copy object-domain data
+        if not os.path.exists(folderName):
+            os.mkdir(folderName)
+            shutil.copy(rs_file, folderName)
+        else:
+            shutil.copy(rs_file, folderName)
+        #
+        #now go through all Fourier-domain files and copy them to the respective folders
+        for _, ks_file in enumerate(ks_filenames):
+            ks_file = ks_filenames[rs_idx]
+            if os.path.exists(folderName):
+                shutil.copy(ks_file, folderName)
             else:
-                shutil.copy(rs_file, folderName)
+                raise ValueError("Invalid path! Object- and Fourier domain filenames must have the same endings!")
+                    #initialise phase retrieval class
+        #
+        #initialise phase retrieval class
+        pr = PhaseRetrieval(filename_rspace=rs_file, filename_kspace=ks_file)
+        #
+        #phase retrieval
+        for ii in range(0, rec_number):
             #
-            #now go through all Fourier-domain files and copy them to the respective folders
-            for ks_file in sorted(ks_filenames):
-                ks_file = ks_filenames[rs_idx]
-                if os.path.exists(folderName):
-                    shutil.copy(ks_file, folderName)
-                else:
-                    raise ValueError("Invalid path! Object- and Fourier domain filenames must have the same endings!")
-                        #initialise phase retrieval class
-            #
-            #initialise phase retrieval class
-            pr = PhaseRetrieval(filename_rspace=rs_file, filename_kspace=ks_file)
-            #
-            #phase retrieval
-            for ii in range(0, rec_number):
-                #
-                if suppress_print is True:
-                    with HiddenPrints():
-                        pr.gerchberg_saxton(gs_steps = gs_steps,
-                                                          plot_progress = plot_progress,
-                                                          plot_every_kth_iteration = plot_every_kth_iteration,
-                                                          zoom = zoom)##
-                        pr.save_as_csv(filename = filename,
-                                       pathtosave = os.path.join(datapath, folderName),
-                                       Fourier_amplitude = Fourier_amplitude,
-                                       Fourier_phase = Fourier_phase,
-                                       object_amplitude = object_amplitude,
-                                       object_phase = object_phase)
-                else:
-                    pr.gerchberg_saxton(gs_steps=gs_steps,
-                                                      plot_progress=plot_progress,
-                                                      plot_every_kth_iteration=plot_every_kth_iteration,
-                                                      zoom=zoom)  ##
-                    pr.save_as_csv(filename=filename,
-                                   pathtosave=os.path.join(datapath, folderName),
-                                   Fourier_amplitude=Fourier_amplitude,
-                                   Fourier_phase=Fourier_phase,
-                                   object_amplitude=object_amplitude,
-                                   object_phase=object_phase)
-    else:
-        raise ValueError("file_extension argument must be either 'tif' or 'csv'! ")
+            if suppress_print is True:
+                with HiddenPrints():
+                    pr.gerchberg_saxton(gs_steps = gs_steps,
+                                                      plot_progress = plot_progress,
+                                                      plot_every_kth_iteration = plot_every_kth_iteration,
+                                                      zoom = zoom)##
+                    pr.save_as_csv(filename = filename,
+                                   pathtosave = os.path.join(datapath, folderName),
+                                   Fourier_amplitude = Fourier_amplitude,
+                                   Fourier_phase = Fourier_phase,
+                                   object_amplitude = object_amplitude,
+                                   object_phase = object_phase)
+            else:
+                pr.gerchberg_saxton(gs_steps=gs_steps,
+                                                  plot_progress=plot_progress,
+                                                  plot_every_kth_iteration=plot_every_kth_iteration,
+                                                  zoom=zoom)  ##
+                pr.save_as_csv(filename=filename,
+                               pathtosave=os.path.join(datapath, folderName),
+                               Fourier_amplitude=Fourier_amplitude,
+                               Fourier_phase=Fourier_phase,
+                               object_amplitude=object_amplitude,
+                               object_phase=object_phase)
 
 def gerchberg_saxton_extrapolation_script(datapath = None,
                                    rs_prefix = None,
