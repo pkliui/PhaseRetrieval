@@ -876,6 +876,11 @@ class PhaseRetrieval(object):
         Saves images reconstructed with Gechberg_Saxton algorithm
         as float 32 tif images
 
+        Filenames of the saved images indicate the corresponding saved image type (i.e. _object_phase_),
+        followed by reciprocal space error recorded at the last iteration of the retrieval algorithm,
+        date (YYYYMMDD) and time (HHMMSS). The error is given in format (1X000), where X are for digits of
+        the decimal part of the error.
+
         ---
         Parameters
         ---
@@ -1013,7 +1018,7 @@ class PhaseRetrieval(object):
                 filename_full = filename + '_Fourier_amplitude_' + rms_final + '.csv'
             else:
                 filename_full = filename[:-4] + '_Fourier_amplitude_' + rms_final + '.csv'
-            np.savetxt(os.path.join(pathtosave, filename_full), image_kspace_kk_prime_abs, delimiter = '\t')
+            np.savetxt(os.path.join(pathtosave, filename_full), image_kspace_kk_prime_abs, delimiter = '\t', fmt='%1.2f')
             print('Fourier amplitude saved as ', filename_full)
             #
         if Fourier_phase is True:
@@ -1028,7 +1033,7 @@ class PhaseRetrieval(object):
                 filename_full = filename + '_Fourier_phase_' + rms_final + '.csv'
             else:
                 filename_full = filename[:-4] + '_Fourier_phase_' + rms_final + '.csv'
-            np.savetxt(os.path.join(pathtosave, filename_full), image_kspace_kk_prime_angle, delimiter = '\t')
+            np.savetxt(os.path.join(pathtosave, filename_full), image_kspace_kk_prime_angle, delimiter = '\t', fmt='%1.2f')
             print('Fourier phase saved as ', filename_full)
         #
         if object_amplitude is True:
@@ -1043,7 +1048,7 @@ class PhaseRetrieval(object):
                 filename_full = filename + '_object_amplitude_' + rms_final + '.csv'
             else:
                 filename_full = filename[:-4] + '_object_amplitude_' + rms_final + '.csv'
-            np.savetxt(os.path.join(pathtosave, filename_full), image_rspace_kk_prime_abs, delimiter = '\t')
+            np.savetxt(os.path.join(pathtosave, filename_full), image_rspace_kk_prime_abs, delimiter = '\t', fmt='%1.2f')
             print('object amplitude saved as ', filename_full)
             #
         if object_phase is True:
@@ -1058,5 +1063,85 @@ class PhaseRetrieval(object):
                 filename_full = filename + '_object_phase_' + rms_final + '.csv'
             else:
                 filename_full = filename[:-4] + '_object_phase_' + rms_final + '.csv'
-            np.savetxt(os.path.join(pathtosave, filename_full), image_rspace_kk_prime_angle, delimiter = '\t')
-            print('object phase saved as ', filename_full)
+            np.savetxt(os.path.join(pathtosave, filename_full), image_rspace_kk_prime_angle, delimiter = '\t', fmt='%1.2f')
+            print('object phase saved as', filename_full)
+
+def save_as_eps(self,
+                filename=None,
+                pathtosave=None,
+                Fourier_amplitude = True,
+                Fourier_phase=True,
+                object_amplitude=True,
+                object_phase=True):
+
+    #
+    #modify the last value of RMS error and append it to the filename
+    if self.rms_error is not None:
+        rms_final = str(float(self.rms_error[-1])).replace('.','')
+        if len(rms_final) > 6:
+            rms_final = rms_final[1:6]
+        rms_final = '1' + rms_final + '000_' + datetime.now().strftime('%Y%m%d_%H%M%S')
+    else:
+        raise ValueError('Error cannot be None. Run phase retrieval algorithm first!')
+    #
+    #
+    if Fourier_amplitude is True:
+        # convert to numpy array
+        if type(self.image_kspace_kk_prime) is not np.ndarray:
+            image_kspace_kk_prime_abs = np.abs(self.image_kspace_kk_prime.to_numpy())
+        else:
+            image_kspace_kk_prime_abs = np.abs(self.image_kspace_kk_prime)
+        #
+        # append eps if needed
+        if not filename.endswith('.eps'):
+            filename_full = filename + '_Fourier_amplitude_' + rms_final + '.eps'
+        else:
+            filename_full = filename[:-4] + '_Fourier_amplitude_' + rms_final + '.eps'
+        np.savetxt(os.path.join(pathtosave, filename_full), image_kspace_kk_prime_abs, delimiter = '\t')
+        print('Fourier amplitude saved as ', filename_full)
+        #
+    if Fourier_phase is True:
+        # convert to numpy array
+        if type(self.image_kspace_kk_prime) is not np.ndarray:
+            image_kspace_kk_prime_angle = np.angle(self.image_kspace_kk_prime.to_numpy())
+        else:
+            image_kspace_kk_prime_angle = np.angle(self.image_kspace_kk_prime)
+        #
+        # append eps if needed
+        if not filename.endswith('.eps'):
+            filename_full = filename + '_Fourier_phase_' + rms_final + '.eps'
+        else:
+            filename_full = filename[:-4] + '_Fourier_phase_' + rms_final + '.eps'
+        np.savetxt(os.path.join(pathtosave, filename_full), image_kspace_kk_prime_angle, delimiter = '\t')
+        print('Fourier phase saved as ', filename_full)
+    #
+    if object_amplitude is True:
+        # convert to numpy array
+        if type(self.image_rspace_kk_prime) is not np.ndarray:
+            image_rspace_kk_prime_abs = np.abs(self.image_rspace_kk_prime.to_numpy())
+        else:
+            image_rspace_kk_prime_abs = np.abs(self.image_rspace_kk_prime)
+        #
+        # append eps if needed
+        if not filename.endswith('.eps'):
+            filename_full = filename + '_object_amplitude_' + rms_final + '.'
+        else:
+            filename_full = filename[:-4] + '_object_amplitude_' + rms_final + '.eps'
+        np.savetxt(os.path.join(pathtosave, filename_full), image_rspace_kk_prime_abs, delimiter = '\t')
+        print('object amplitude saved as ', filename_full)
+        #
+    if object_phase is True:
+        # convert to numpy array
+        if type(self.image_rspace_kk_prime) is not np.ndarray:
+            image_rspace_kk_prime_angle = np.angle(self.image_rspace_kk_prime.to_numpy())
+        else:
+            image_rspace_kk_prime_angle = np.angle(self.image_rspace_kk_prime)
+        #
+        # append eps if needed
+        if not filename.endswith('.eps'):
+            filename_full = filename + '_object_phase_' + rms_final + '.eps'
+        else:
+            filename_full = filename[:-4] + '_object_phase_' + rms_final + '.eps'
+        np.savetxt(os.path.join(pathtosave, filename_full), image_rspace_kk_prime_angle, delimiter = '\t')
+        plt.savefig('destination_path.eps', format='eps')
+        print('object phase saved as ', filename_full)
