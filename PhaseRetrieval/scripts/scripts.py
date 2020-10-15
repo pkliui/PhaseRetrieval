@@ -546,9 +546,10 @@ def gerchberg_saxton_extrapolation_script(datapath = None,
         raise ValueError("file_extension argument must be either 'tif' or 'csv'! ")
 
 def phase_alignment_gerchberg_saxton_script(datapath=None,
-                                     folder_prefix=None,
-                                     amplitude_prefix=None,
-                                     phase_prefix=None,
+                                     folder_id=None,
+                                     phase_id=None,
+                                     amplitude_id=None,
+                                     amplitude_extension = None,
                                      delimiter = '\t',
                                      num_files_to_align=None,
                                      ref_coordinates=None,
@@ -567,14 +568,17 @@ def phase_alignment_gerchberg_saxton_script(datapath=None,
     datapath : str
         Path to a directory with folders containing reconstructed phase images.
         Default is None.
-    amplitude_prefix : str, optional
-        Prefix in the filename containing amplitude distribution associated with the phase images to be aligned.
-        Default is None
-    folder_prefix : str
+    folder_id : str
         String that must be contained in the name(s) of the folder that contains files to be read and aligned
         Default is None
-    phase_prefix : str
+    phase_id : str
         String that must be contained in the names of the files with phase distributions to be read and aligned
+        Default is None
+    amplitude_id : str, optional
+        String that must be contained in the names of the files with the amplitude distribution associated with the phase images to be aligned.
+        Default is None
+    amplitude_extension : str, optional
+        Extension of the amplitude distribution specified as either "tif" or "csv".
         Default is None
     delimiter : str, optional
         Delimiter in csv files
@@ -602,11 +606,12 @@ def phase_alignment_gerchberg_saxton_script(datapath=None,
         True will let print calls to be displayed.
         Default is False.
     """
-    if datapath and folder_prefix and phase_prefix is not None:
+    if datapath and folder_id and phase_id is not None:
         #
         # get sub-directories
         subdir_list = [os.path.join(datapath, subdir) for subdir in os.listdir(datapath) if
-                       os.path.isdir(os.path.join(datapath, subdir)) and folder_prefix in subdir]
+                       os.path.isdir(os.path.join(datapath, subdir)) and folder_id in subdir]
+        print(subdir_list)
         #
         # go to each sub-directory and align images there
         for ii in range(0, len(subdir_list)):
@@ -616,15 +621,11 @@ def phase_alignment_gerchberg_saxton_script(datapath=None,
             print(filenames_list)
             #
             # load amplitude image
-            if amplitude_prefix is not None:
+            if amplitude_id is not None:
                 # filter names of files containing amplitude image
-                amplitude_filenames_list = sorted(glob.glob(os.path.join(subdir_list[ii], amplitude_prefix)), key=os.path.getmtime)
-                #amplitude_filenames_list = sorted(glob.glob(os.path.join(subdir_list[ii], '*.tif')), key=os.path.getmtime)
-
+                amplitude_filenames_list = sorted(glob.glob(os.path.join(subdir_list[ii], "*" + amplitude_id +  "." + amplitude_extension)), key=os.path.getmtime)
                 print(amplitude_filenames_list)
                 amplitude_filename = [file for file in amplitude_filenames_list]
-                #amplitude_filename = [file for file in amplitude_filenames_list if amplitude_prefix in file ]
-
                 amplitude_filename = ''.join(amplitude_filename)
                 print(amplitude_filename)
             else:
@@ -632,7 +633,7 @@ def phase_alignment_gerchberg_saxton_script(datapath=None,
 
             #
             # filter names of files containing phase images
-            phase_filenames = [file for file in filenames_list if phase_prefix in file]
+            phase_filenames = [file for file in filenames_list if phase_id in file]
             print(phase_filenames)
             #
             if print_progress is True:

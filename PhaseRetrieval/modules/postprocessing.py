@@ -21,6 +21,44 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
                                      plot_progress = True,
                                      plot_every_kth_iteration=1,
                                      zoom = 1):
+    """
+        Alignment of phase images yielded by Gerchberg-Saxton algorithm (in csv file format) (of either pbject-domain or Fourier domain phase images).
+        It is assumed that the corresponding amplitude is known and the phases are all in spatial registry.
+        ---
+        Parameters
+        ---
+        amplitude_filename : list
+            Path to file containing amplitude distribution
+            Default is None
+        phase_filenames : list
+            List of paths to files with phase distributions to be aligned
+            Default is None
+        num_files_to_align : int
+            Integer number of files with phase distributions to be aligned
+            If set to None, all files will be used for alignment.
+            Default is None.
+        delimiter : str, optional
+            Delimiter in csv files
+            Default is '\t'
+        ref_coordinates: list [1x2], optional
+            Coordinates of a reference phase value.
+            If set to None, the ref_coordinates will be set the image's centre coordinates (i.e. [501,501] for 1000x1000 pixels image)
+            If a list is provided, the values will be taken from there.
+        symmetric_phase ; bool, optional
+            If set to True, pixel values in the final phase distribution will be shifted symmetrically w.r.t zero
+            If False, pixels values in the final phase distribution will be left as they are after alignment
+            Default is True
+        plot_progress : bool, optional
+            False will prevent algorithm from plotting the progress.
+            True will plot the progress of the algorithm.
+            Default is False.
+        plot_every_kth_iteration : int, optional
+            Plot the progress each k-th iteration, where k=plot_every_kth_iteration
+            Default is 1.
+        zoom: int, optional
+            Zoom factor to zoom into the 2D plot
+            Default is 1 (no zoom)
+        """
     #
     #read amplitude image
     if os.path.exists(amplitude_filename):
@@ -95,7 +133,7 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
         if plot_progress is True:
             if (phase_idx + 1) % plot_every_kth_iteration == 0:
                 #
-                print("Image %d \r" % int((phase_idx + 1)), " (is being aligned)")
+                print("Image " + str(int(phase_idx + 1)) + " is being aligned")
                 #
                 # some manipulations with phase distribution to be able to plot it weighted with amplitude values
                 # important to normalise to 1, otherwise the plot will not be displayed correctly!
@@ -136,15 +174,13 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
                 display.clear_output(wait=True)
                 plt.show()
             else:
-                print("Alignment of %d \r" % int((phase_idx + 1) / len(phase_filenames)),
-                      " % of images completed")
+                print("Alignment of " + str(100 * int(phase_idx + 1) / num_files_to_align) + " % of images completed")
         else:
-            print("Alignment of %d \r" % int((phase_idx + 1) / len(phase_filenames)),
-                  " % of images completed")
+            print("Alignment of " + str(100 * int(phase_idx + 1) / num_files_to_align) + " % of images completed")
     #
     # compute the average of the aligned phases
     print("averaging ")
-    aligned_phase_norm = aligned_phase / len_phase_filenames - int(symmetric_phase) * 0.5 * np.max(np.max(aligned_phase)) / len_phase_filenames
+    aligned_phase_norm = aligned_phase / num_files_to_align - int(symmetric_phase) * 0.5 * np.max(np.max(aligned_phase)) / num_files_to_align
     #
     #save aligned images
     filename_full = amplitude_filename[:-14] + '_phase.csv'
