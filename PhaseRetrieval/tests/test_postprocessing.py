@@ -10,7 +10,9 @@ from PhaseRetrieval.modules import postprocessing
 
 @ddt
 class TestPostprocessing(unittest.TestCase):
-
+    """
+    Class to test the postprocessing module
+    """
     @classmethod
     def setUpClass(cls):
         pass
@@ -92,7 +94,8 @@ class TestPostprocessing(unittest.TestCase):
         read_amplitude, read_phase, ref_coordinates, _, _, _ = self.pp.phase_alignment_gerchberg_saxton(amplitude_filename=self.tmp_amplitude_file,
                                                  delimiter=',',
                                                  phase_filenames = [self.tmp_phase_file1, self.tmp_phase_file2, self.tmp_phase_file3],
-                                                 ref_coordinates = None)
+                                                 ref_coordinates = None,
+                                                 num_files_to_align = 3)
         #
         #check the shape of input data
         self.assertEqual(read_amplitude.shape, (5,5))
@@ -105,7 +108,8 @@ class TestPostprocessing(unittest.TestCase):
         read_amplitude, read_phase, ref_coordinates, _, _, _ = self.pp.phase_alignment_gerchberg_saxton(amplitude_filename=self.tmp_amplitude_file,
                                                  delimiter=',',
                                                  phase_filenames = [self.tmp_phase_file1, self.tmp_phase_file2, self.tmp_phase_file3],
-                                                 ref_coordinates = [2,2])
+                                                 ref_coordinates = [2,2],
+                                                 num_files_to_align = 3)
 
         self.assertEqual(read_amplitude.shape, (5,5))
         self.assertEqual(read_phase.shape, (5,5))
@@ -118,7 +122,7 @@ class TestPostprocessing(unittest.TestCase):
                                                  delimiter=',',
                                                  phase_filenames = [self.tmp_phase_file1, self.tmp_phase_file2, self.tmp_phase_file3],
                                                  ref_coordinates = None,
-                                                 num_files_to_align = None,
+                                                 num_files_to_align = 3,
                                                  symmetric_phase = False)
         #
         #test the length of filenames

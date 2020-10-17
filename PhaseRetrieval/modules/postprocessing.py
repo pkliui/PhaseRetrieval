@@ -184,7 +184,7 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
     #
     #save aligned images
     filename_full = amplitude_filename[:-14] + '_phase.csv'
-    np.savetxt(filename_full, aligned_phase_norm, delimiter='\t')
+    np.savetxt(filename_full, aligned_phase_norm, delimiter='\t', fmt='%1.2f')
     print('Aligned phase distribution was saved as ', filename_full)
     #
     return amplitude, phase, ref_coordinates, len_phase_filenames, aligned_phase, aligned_phase_norm
