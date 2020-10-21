@@ -77,7 +77,7 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
         #
         # read phase images
         if os.path.exists(phase_file):
-            phase = pd.read_csv(phase_file, delimiter=delimiter, header=None).values
+            phase = pd.read_csv(phase_file, delimiter=delimiter, header=None, error_bad_lines=False).values
             print('image being aligned: ',phase_file)
             #
         else:
