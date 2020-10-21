@@ -83,101 +83,108 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
         else:
             raise ValueError("Path to an amplitude file does not exist")
         #
-        #compute reference coordinates
-        if ref_coordinates == None: #applies to phase_idx==0 only
-            # determine image size and set the reference pixel to the ones located in the middle of the image
-            ref_coordinates = [0,0]
-            ref_coordinates[0] = int(phase.shape[0]) // 2
-            ref_coordinates[1] = int(phase.shape[0]) // 2
+        # make sure the shape of the phase  image is equal to that of the amplitude image
+        if phase.shape == amplitude.shape:
             #
-        #applies to all phase_idx
-        #if phase_idx==0 and ref_coordinates are not None, use values given by user / or if phase_idx>0, use  ref_coordinates computed at phase_idx==0 iteration
-        else:
-            ref_coordinates = ref_coordinates
-        #
-        # set the number of files to align either to total number of files or just a part of thereof
-        if num_files_to_align is None:
-            len_phase_filenames = len(phase_filenames)
-        else:
-            len_phase_filenames = num_files_to_align
-        #
-        #align phases
-        if phase_idx == 0:
-            #
-            #set the reference phase value to 0 in the first 'aligned' phase distribution
-            aligned_phase = np.copy(phase) - np.copy(phase[ref_coordinates[0], ref_coordinates[1]])
-            offset_phase = np.zeros(aligned_phase.shape)
-        #
-        elif phase_idx > 0 and phase_idx < len_phase_filenames:
-            #
-            # treat the next phase distribution as the offset phase distribution which must be aligned
-            offset_phase = np.copy(phase)
-            #
-            # get current reference phase value in the offset phase distribution
-            ref_phase_value = np.copy(offset_phase[ref_coordinates[0], ref_coordinates[1]])
-            #
-            # shift offset phase distributions depending on the sign of the reference phase value
-            if ref_phase_value + np.abs(0.5 * ref_phase_value) < 0:
-                offset_phase = offset_phase + np.abs(ref_phase_value)
-            elif ref_phase_value + np.abs(0.5 * ref_phase_value) > 0:
-                offset_phase = offset_phase - np.abs(ref_phase_value)
+            #compute reference coordinates
+            if ref_coordinates == None: #applies to phase_idx==0 only
+                # determine image size and set the reference pixel to the ones located in the middle of the image
+                ref_coordinates = [0,0]
+                ref_coordinates[0] = int(phase.shape[0]) // 2
+                ref_coordinates[1] = int(phase.shape[0]) // 2
+                #
+            #applies to all phase_idx
+            #if phase_idx==0 and ref_coordinates are not None, use values given by user / or if phase_idx>0, use  ref_coordinates computed at phase_idx==0 iteration
             else:
-                offset_phase = offset_phase
+                ref_coordinates = ref_coordinates
             #
-            # obtain the sum of aligned phases by adding phase-shifted offset phase to the reference phase
-            aligned_phase = np.copy(aligned_phase) + np.copy(offset_phase)
-        # finish alignment
-        else:
-            break
-        #
-        #plot
-        if plot_progress is True:
-            if (phase_idx + 1) % plot_every_kth_iteration == 0:
+            # set the number of files to align either to total number of files or just a part of thereof
+            if num_files_to_align is None:
+                len_phase_filenames = len(phase_filenames)
+            else:
+                len_phase_filenames = num_files_to_align
+            #
+            #align phases
+            if phase_idx == 0:
                 #
-                print("Image " + str(int(phase_idx + 1)) + " is being aligned")
+                #set the reference phase value to 0 in the first 'aligned' phase distribution
+                aligned_phase = np.copy(phase) - np.copy(phase[ref_coordinates[0], ref_coordinates[1]])
+                offset_phase = np.zeros(aligned_phase.shape)
+            #
+            elif phase_idx > 0 and phase_idx < len_phase_filenames:
                 #
-                # some manipulations with phase distribution to be able to plot it weighted with amplitude values
-                # important to normalise to 1, otherwise the plot will not be displayed correctly!
+                # treat the next phase distribution as the offset phase distribution which must be aligned
+                offset_phase = np.copy(phase)
                 #
-                offset_phase_weighted = plt.cm.bwr(
-                    rescale_intensity(- offset_phase.min() + offset_phase, out_range=(0, 1)))
-                offset_phase_weighted[..., -1] = rescale_intensity(amplitude, out_range=(0, 1))
+                # get current reference phase value in the offset phase distribution
+                ref_phase_value = np.copy(offset_phase[ref_coordinates[0], ref_coordinates[1]])
                 #
-                aligned_phases_weighted = plt.cm.bwr(
-                    rescale_intensity(- aligned_phase.min() + aligned_phase, out_range=(0, 1)))
-                aligned_phases_weighted[..., -1] = rescale_intensity(amplitude, out_range=(0, 1))
+                # shift offset phase distributions depending on the sign of the reference phase value
+                if ref_phase_value + np.abs(0.5 * ref_phase_value) < 0:
+                    offset_phase = offset_phase + np.abs(ref_phase_value)
+                elif ref_phase_value + np.abs(0.5 * ref_phase_value) > 0:
+                    offset_phase = offset_phase - np.abs(ref_phase_value)
+                else:
+                    offset_phase = offset_phase
                 #
-                fig, ax = plt.subplots(1, 2, figsize=(10, 20))
-                ax = ax.ravel()
-                theshape = offset_phase_weighted.shape
-                #
-                # current offset phase
-                im00 = ax[0].imshow(offset_phase_weighted, cmap='seismic', vmin=offset_phase.min(),
-                                    vmax=offset_phase.max())
-                ax[0].set_title("offset phase")
-                plt.colorbar(im00, ax=ax[0], fraction=0.046, pad=0.04)
-                ax[0].axis([theshape[0] // 2 - theshape[0] // 2 // zoom,
-                            theshape[0] // 2 + theshape[0] // 2 // zoom,
-                            theshape[1] // 2 - theshape[1] // 2 // zoom,
-                            theshape[1] // 2 + theshape[1] // 2 // zoom])
-                #
-                # computed Fourier phase
-                im01 = ax[1].imshow(aligned_phases_weighted, cmap='seismic', vmin=aligned_phase.min(),
-                                    vmax=aligned_phase.max())
-                ax[1].set_title("aligned phase")
-                plt.colorbar(im01, ax=ax[1], fraction=0.046, pad=0.04)
-                ax[1].axis([theshape[0] // 2 - theshape[0] // 2 // zoom,
-                            theshape[0] // 2 + theshape[0] // 2 // zoom,
-                            theshape[1] // 2 - theshape[1] // 2 // zoom,
-                            theshape[1] // 2 + theshape[1] // 2 // zoom])
-                #
-                fig.tight_layout()
-                display.clear_output(wait=True)
-                plt.show()
+                # obtain the sum of aligned phases by adding phase-shifted offset phase to the reference phase
+                aligned_phase = np.copy(aligned_phase) + np.copy(offset_phase)
+            # finish alignment
+            else:
+                break
+            #
+            #plot
+            if plot_progress is True:
+                if (phase_idx + 1) % plot_every_kth_iteration == 0:
+                    #
+                    print("Image " + str(int(phase_idx + 1)) + " is being aligned")
+                    #
+                    # some manipulations with phase distribution to be able to plot it weighted with amplitude values
+                    # important to normalise to 1, otherwise the plot will not be displayed correctly!
+                    #
+                    offset_phase_weighted = plt.cm.bwr(
+                        rescale_intensity(- offset_phase.min() + offset_phase, out_range=(0, 1)))
+                    offset_phase_weighted[..., -1] = rescale_intensity(amplitude, out_range=(0, 1))
+                    #
+                    aligned_phases_weighted = plt.cm.bwr(
+                        rescale_intensity(- aligned_phase.min() + aligned_phase, out_range=(0, 1)))
+                    aligned_phases_weighted[..., -1] = rescale_intensity(amplitude, out_range=(0, 1))
+                    #
+                    fig, ax = plt.subplots(1, 2, figsize=(10, 20))
+                    ax = ax.ravel()
+                    theshape = offset_phase_weighted.shape
+                    #
+                    # current offset phase
+                    im00 = ax[0].imshow(offset_phase_weighted, cmap='seismic', vmin=offset_phase.min(),
+                                        vmax=offset_phase.max())
+                    ax[0].set_title("offset phase")
+                    plt.colorbar(im00, ax=ax[0], fraction=0.046, pad=0.04)
+                    ax[0].axis([theshape[0] // 2 - theshape[0] // 2 // zoom,
+                                theshape[0] // 2 + theshape[0] // 2 // zoom,
+                                theshape[1] // 2 - theshape[1] // 2 // zoom,
+                                theshape[1] // 2 + theshape[1] // 2 // zoom])
+                    #
+                    # computed Fourier phase
+                    im01 = ax[1].imshow(aligned_phases_weighted, cmap='seismic', vmin=aligned_phase.min(),
+                                        vmax=aligned_phase.max())
+                    ax[1].set_title("aligned phase")
+                    plt.colorbar(im01, ax=ax[1], fraction=0.046, pad=0.04)
+                    ax[1].axis([theshape[0] // 2 - theshape[0] // 2 // zoom,
+                                theshape[0] // 2 + theshape[0] // 2 // zoom,
+                                theshape[1] // 2 - theshape[1] // 2 // zoom,
+                                theshape[1] // 2 + theshape[1] // 2 // zoom])
+                    #
+                    fig.tight_layout()
+                    display.clear_output(wait=True)
+                    plt.show()
+                else:
+                    print("Alignment of " + str(100 * int(phase_idx + 1) / num_files_to_align) + " % of images completed")
             else:
                 print("Alignment of " + str(100 * int(phase_idx + 1) / num_files_to_align) + " % of images completed")
+        #
+        # skip the phase image if its shape is different from the shape of the amplitude image
         else:
-            print("Alignment of " + str(100 * int(phase_idx + 1) / num_files_to_align) + " % of images completed")
+            pass
     #
     # compute the average of the aligned phases
     print("averaging ")
