@@ -85,7 +85,9 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
         #
         # make sure the shape of the phase  image is equal to that of the amplitude image
         try:
+            print(phase.shape, amplitude.shape)
             assert phase.shape == amplitude.shape
+            print("phase shape = amplitude shape")
             #
             #compute reference coordinates
             if ref_coordinates == None: #applies to phase_idx==0 only
