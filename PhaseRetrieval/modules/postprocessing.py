@@ -84,7 +84,8 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
             raise ValueError("Path to an amplitude file does not exist")
         #
         # make sure the shape of the phase  image is equal to that of the amplitude image
-        if phase.shape == amplitude.shape:
+        try:
+            assert phase.shape == amplitude.shape
             #
             #compute reference coordinates
             if ref_coordinates == None: #applies to phase_idx==0 only
@@ -183,8 +184,8 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
                 print("Alignment of " + str(100 * int(phase_idx + 1) / num_files_to_align) + " % of images completed")
         #
         # skip the phase image if its shape is different from the shape of the amplitude image
-        else:
-            pass
+        except AssertionError as e:
+            print(e)
     #
     # compute the average of the aligned phases
     print("averaging ")
