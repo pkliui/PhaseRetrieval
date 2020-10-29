@@ -486,7 +486,7 @@ class PhaseRetrieval(object):
                               image_rspace0.shape[1] // 2 + image_rspace0.shape[1] // 2 // zoom])
                     #
                     # constrained object-domain amplitude
-                    im12 = ax[1,2].imshow(self.amp_kspace)
+                    im12 = ax[1,2].imshow(self.amp_rspace)
                     ax[1,2].set_title("$|\mathrm{g}_{k+1}|$ - constrained object amplitude")
                     plt.colorbar(im10, ax=ax[1,2], fraction=0.046, pad=0.04)
                     ax[1,2].axis([image_rspace0.shape[0] // 2 - image_rspace0.shape[0] // 2 // zoom,
