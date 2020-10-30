@@ -120,6 +120,16 @@ class PhaseRetrieval(object):
                 self.read_from_tif(filename=filename_kspace, image_domain='Fourier')
             else:
                 raise ValueError('Invalid file type! Must be either csv or tif!')
+        #
+        #convert read intensities to amplitudes
+        self.amp_rspace = np.sqrt(self.amp_rspace)
+        self.amp_kspace =  np.sqrt(self.amp_kspace)
+        #
+        #check energy conservation
+        print("checking energy conservation ... ")
+        print("rs energy", (np.power(self.amp_rspace,2)).sum())
+        print("ks energy", (np.power(self.amp_kspace,2)).sum())
+        print("rs energy * Ntot", (np.power(self.amp_rspace,2)).sum() *self.amp_rspace.shape[0] * self.amp_rspace.shape[1])
 
     def __repr__(self):
         return "Class for phase retrieval"
@@ -203,8 +213,6 @@ class PhaseRetrieval(object):
                         self.amp_rspace = io.imread(filename)
                         print('object-domain data were read as ', filename)
                         print()
-                        #convert intensity to amplitude
-                        self.amp_rspace = np.sqrt(self.amp_rspace)
                         self.filename_rspace = filename
                         if os.path.exists(filename[:-4] + '.csv'):
                             self.metadata_rspace.read_from_csv(filename[:-4] + '.csv')
@@ -217,14 +225,7 @@ class PhaseRetrieval(object):
                         self.amp_kspace = io.imread(filename)
                         print('Fourier-domain data were read as ', filename)
                         print()
-                        #convert intensity to amplitude
-                        self.amp_kspace = np.sqrt(self.amp_kspace)
                         self.filename_kspace = filename
-                        #if os.path.exists(filename[:-4] + '.csv'):
-                        #    self.metadata_kspace = pd.read_csv(filename[:-4] + '.csv')
-                        #    print('Fourier-domain metadata were read as ', filename[:-4] + '.csv')
-                        #else:
-                        #    warnings.warn("Fourier-domain metadata file is not found!", Warning)
                         #
                     else:
                         ValueError('Image domain must be either "object" or "Fourier"!')
@@ -258,8 +259,8 @@ class PhaseRetrieval(object):
                             self.amp_rspace = pd.read_csv(filename, delimiter, header=None)
                             print('object-domain data were read as ', filename)
                             print()
-                            #convert intensity to amplitude
-                            self.amp_rspace = np.sqrt(self.amp_rspace.values)
+                            #get the values
+                            self.amp_rspace = self.amp_rspace.values
                             self.filename_rspace = filename
                             self.delimiter = delimiter
                             if os.path.exists(filename[:-4] + '.csv'):
@@ -271,8 +272,8 @@ class PhaseRetrieval(object):
                         elif image_domain is 'Fourier':
                             self.amp_kspace = pd.read_csv(filename, delimiter, header=None)
                             print('Fourier-domain data were read as ', filename)
-                            #convert intensity to amplitude
-                            self.amp_kspace = np.sqrt(self.amp_kspace.values)
+                            #get the values
+                            self.amp_kspace = self.amp_kspace.values
                             self.filename_kspace = filename
                             self.delimiter = delimiter
                             if os.path.exists(filename[:-4] + '.csv'):
