@@ -283,7 +283,7 @@ class RSpaceImage(object):
     def centre_image_watershed(self, linear_object_size=100e-6, npixels_pad=2000, apodization=False, plot_progress = False):
         """
         Centers the object-domain image using watershed algorithm (the existence of only a single blob is assumed).
-        Finds its physical linear pixel size.
+        Finds its physical linear pixel size and saves this information into image's metadata.
         Completes zero-padding of the original image to a specified linear number of pixels
         Applies an apodization filter to smooth boundaries of the object distribution (optional)
 
@@ -298,7 +298,7 @@ class RSpaceImage(object):
             Default is 2000.
         apodization: bool, optional
             If True, the boundaries of the object distribution will be smoothed using Gaussian filter
-            with standard deviation = 1 and truncation of the filter's boundaries to 2
+            with standard deviation = 3 pixels and truncation of the filter's boundaries to 2
             (fixed at the moment, but may/should be changed in the future)
             Default is False
         plot_progress: bool, optional
@@ -575,6 +575,7 @@ class RSpaceImage(object):
                     self.image = pad(np.array(self.image), ((npixels_to_pad_final0, npixels_to_pad_final1), (npixels_to_pad_final0, npixels_to_pad_final1)), mode='constant')
                     #
                     #check if the final dimensions are of equal length
+                    #check if the inal dimensions are of equal length
                     if self.image.shape[0] == self.image.shape[1]:
                         #
                         #set the final linear number of pixels by the actual image size
