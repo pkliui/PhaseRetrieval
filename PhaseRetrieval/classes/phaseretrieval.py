@@ -372,7 +372,7 @@ class PhaseRetrieval(object):
         """
         #
         #random phase distribution in Fourier space (between -pi and pi) and initial guesses in Fourier and object domains
-        phase_kspace0= (2.0 * np.random.rand(self.amp_kspace.shape[0], self.amp_kspace.shape[1]) - 1) * np.pi
+        phase_kspace0 = (2.0 * np.random.rand(self.amp_kspace.shape[0], self.amp_kspace.shape[1]) - 1) * np.pi
         image_kspace0 = self.amp_kspace * np.exp(1j*phase_kspace0)
         image_rspace0 = self.ft2d_centered(input_function = image_kspace0)
         #
@@ -441,8 +441,8 @@ class PhaseRetrieval(object):
                     plt.colorbar(im00, ax=ax[0,0], fraction=0.046, pad=0.04)
                     ax[0,0].axis([image_rspace0.shape[0] // 2 - image_rspace0.shape[0] // 2 // zoom,
                               image_rspace0.shape[0] // 2 + image_rspace0.shape[0] // 2 // zoom,
-                              image_rspace0.shape[1] // 2 - image_rspace0.shape[1] // 2 // zoom,
-                              image_rspace0.shape[1] // 2 + image_rspace0.shape[1] // 2 // zoom])
+                              image_rspace0.shape[1] // 2 + image_rspace0.shape[1] // 2 // zoom,
+                              image_rspace0.shape[1] // 2 - image_rspace0.shape[1] // 2 // zoom])
                     #
                     # computed Fourier phase
                     im01 = ax[0,1].imshow(phase_kspace_kk_weighted, cmap='seismic', vmin=np.angle(image_kspace_kk).min(), vmax=np.angle(image_kspace_kk).max())
@@ -450,8 +450,8 @@ class PhaseRetrieval(object):
                     plt.colorbar(im01, ax=ax[0,1], fraction=0.046, pad=0.04)
                     ax[0,1].axis([image_rspace0.shape[0] // 2 - image_rspace0.shape[0] // 2 // zoom,
                               image_rspace0.shape[0] // 2 + image_rspace0.shape[0] // 2 // zoom,
-                              image_rspace0.shape[1] // 2 - image_rspace0.shape[1] // 2 // zoom,
-                              image_rspace0.shape[1] // 2 + image_rspace0.shape[1] // 2 // zoom])
+                              image_rspace0.shape[1] // 2 + image_rspace0.shape[1] // 2 // zoom,
+                              image_rspace0.shape[1] // 2 - image_rspace0.shape[1] // 2 // zoom])
                     #
                     # constrained Fourier amplitude
                     im02 = ax[0,2].imshow(self.amp_kspace)
@@ -459,8 +459,8 @@ class PhaseRetrieval(object):
                     plt.colorbar(im02, ax=ax[0,2], fraction=0.046, pad=0.04)
                     ax[0,2].axis([image_rspace0.shape[0] // 2 - image_rspace0.shape[0] // 2 // zoom,
                               image_rspace0.shape[0] // 2 + image_rspace0.shape[0] // 2 // zoom,
-                              image_rspace0.shape[1] // 2 - image_rspace0.shape[1] // 2 // zoom,
-                              image_rspace0.shape[1] // 2 + image_rspace0.shape[1] // 2 // zoom])
+                              image_rspace0.shape[1] // 2 + image_rspace0.shape[1] // 2 // zoom,
+                              image_rspace0.shape[1] // 2 - image_rspace0.shape[1] // 2 // zoom])
                     #
                     # RMSE
                     im03 = ax[0,3].plot(rms_error)
@@ -473,8 +473,8 @@ class PhaseRetrieval(object):
                     plt.colorbar(im10, ax=ax[1,0], fraction=0.046, pad=0.04)
                     ax[1,0].axis([image_rspace0.shape[0] // 2 - image_rspace0.shape[0] // 2 // zoom,
                               image_rspace0.shape[0] // 2 + image_rspace0.shape[0] // 2 // zoom,
-                              image_rspace0.shape[1] // 2 - image_rspace0.shape[1] // 2 // zoom,
-                              image_rspace0.shape[1] // 2 + image_rspace0.shape[1] // 2 // zoom])
+                              image_rspace0.shape[1] // 2 + image_rspace0.shape[1] // 2 // zoom,
+                              image_rspace0.shape[1] // 2 - image_rspace0.shape[1] // 2 // zoom])
                     #
                     # computed object-domain phase
                     im11 = ax[1,1].imshow(phase_rspace_kk_prime_weighted, cmap='seismic', vmin=np.angle(image_rspace_kk_prime).min(), vmax=np.angle(image_rspace_kk_prime).max())
@@ -482,8 +482,8 @@ class PhaseRetrieval(object):
                     plt.colorbar(im11, ax=ax[1,1], fraction=0.046, pad=0.04)
                     ax[1,1].axis([image_rspace0.shape[0] // 2 - image_rspace0.shape[0] // 2 // zoom,
                               image_rspace0.shape[0] // 2 + image_rspace0.shape[0] // 2 // zoom,
-                              image_rspace0.shape[1] // 2 - image_rspace0.shape[1] // 2 // zoom,
-                              image_rspace0.shape[1] // 2 + image_rspace0.shape[1] // 2 // zoom])
+                              image_rspace0.shape[1] // 2 + image_rspace0.shape[1] // 2 // zoom,
+                              image_rspace0.shape[1] // 2 - image_rspace0.shape[1] // 2 // zoom])
                     #
                     # constrained object-domain amplitude
                     im12 = ax[1,2].imshow(self.amp_rspace)
@@ -491,8 +491,8 @@ class PhaseRetrieval(object):
                     plt.colorbar(im10, ax=ax[1,2], fraction=0.046, pad=0.04)
                     ax[1,2].axis([image_rspace0.shape[0] // 2 - image_rspace0.shape[0] // 2 // zoom,
                               image_rspace0.shape[0] // 2 + image_rspace0.shape[0] // 2 // zoom,
-                              image_rspace0.shape[1] // 2 - image_rspace0.shape[1] // 2 // zoom,
-                              image_rspace0.shape[1] // 2 + image_rspace0.shape[1] // 2 // zoom])
+                              image_rspace0.shape[1] // 2 + image_rspace0.shape[1] // 2 // zoom,
+                              image_rspace0.shape[1] // 2 - image_rspace0.shape[1] // 2 // zoom])
                     #
                     # constrained object-domain phase
                     im13 = ax[1,3].imshow(phase_rspace_kk1_weighted, cmap='seismic', vmin=np.angle(image_rspace_kk1).min(), vmax=np.angle(image_rspace_kk1).max())
@@ -500,8 +500,8 @@ class PhaseRetrieval(object):
                     plt.colorbar(im11, ax=ax[1,3], fraction=0.046, pad=0.04)
                     ax[1,3].axis([image_rspace0.shape[0] // 2 - image_rspace0.shape[0] // 2 // zoom,
                               image_rspace0.shape[0] // 2 + image_rspace0.shape[0] // 2 // zoom,
-                              image_rspace0.shape[1] // 2 - image_rspace0.shape[1] // 2 // zoom,
-                              image_rspace0.shape[1] // 2 + image_rspace0.shape[1] // 2 // zoom])
+                              image_rspace0.shape[1] // 2 + image_rspace0.shape[1] // 2 // zoom,
+                              image_rspace0.shape[1] // 2 - image_rspace0.shape[1] // 2 // zoom])
                     #
                     fig.tight_layout()
                     display.clear_output(wait=True)
@@ -690,8 +690,8 @@ class PhaseRetrieval(object):
                     plt.colorbar(im01, ax=ax[0,1], fraction=0.046, pad=0.04)
                     ax[0,1].axis([image_rspace0.shape[0] // 2 - image_rspace0.shape[0] // 2 // zoom,
                               image_rspace0.shape[0] // 2 + image_rspace0.shape[0] // 2 // zoom,
-                              image_rspace0.shape[1] // 2 - image_rspace0.shape[1] // 2 // zoom,
-                              image_rspace0.shape[1] // 2 + image_rspace0.shape[1] // 2 // zoom])
+                              image_rspace0.shape[1] // 2 + image_rspace0.shape[1] // 2 // zoom,
+                              image_rspace0.shape[1] // 2 - image_rspace0.shape[1] // 2 // zoom])
                     #
                     # constrained Fourier amplitude
                     im02 = ax[0,2].imshow(np.log(np.abs(image_kspace_kk_prime)))
@@ -699,8 +699,8 @@ class PhaseRetrieval(object):
                     plt.colorbar(im02, ax=ax[0,2], fraction=0.046, pad=0.04)
                     ax[0,2].axis([image_rspace0.shape[0] // 2 - image_rspace0.shape[0] // 2 // zoom,
                               image_rspace0.shape[0] // 2 + image_rspace0.shape[0] // 2 // zoom,
-                              image_rspace0.shape[1] // 2 - image_rspace0.shape[1] // 2 // zoom,
-                              image_rspace0.shape[1] // 2 + image_rspace0.shape[1] // 2 // zoom])
+                              image_rspace0.shape[1] // 2 + image_rspace0.shape[1] // 2 // zoom,
+                              image_rspace0.shape[1] // 2 - image_rspace0.shape[1] // 2 // zoom])
                     #
                     # RMSE
                     im03 = ax[0,3].plot(rms_error)
@@ -713,8 +713,8 @@ class PhaseRetrieval(object):
                     plt.colorbar(im10, ax=ax[1,0], fraction=0.046, pad=0.04)
                     ax[1,0].axis([image_rspace0.shape[0] // 2 - image_rspace0.shape[0] // 2 // zoom,
                               image_rspace0.shape[0] // 2 + image_rspace0.shape[0] // 2 // zoom,
-                              image_rspace0.shape[1] // 2 - image_rspace0.shape[1] // 2 // zoom,
-                              image_rspace0.shape[1] // 2 + image_rspace0.shape[1] // 2 // zoom])
+                              image_rspace0.shape[1] // 2 + image_rspace0.shape[1] // 2 // zoom,
+                              image_rspace0.shape[1] // 2 - image_rspace0.shape[1] // 2 // zoom])
                     #
                     # computed object-domain phase
                     im11 = ax[1,1].imshow(phase_rspace_kk_prime_weighted, cmap='seismic', vmin=np.angle(image_rspace_kk_prime).min(), vmax=np.angle(image_rspace_kk_prime).max())
@@ -722,8 +722,8 @@ class PhaseRetrieval(object):
                     plt.colorbar(im11, ax=ax[1,1], fraction=0.046, pad=0.04)
                     ax[1,1].axis([image_rspace0.shape[0] // 2 - image_rspace0.shape[0] // 2 // zoom,
                               image_rspace0.shape[0] // 2 + image_rspace0.shape[0] // 2 // zoom,
-                              image_rspace0.shape[1] // 2 - image_rspace0.shape[1] // 2 // zoom,
-                              image_rspace0.shape[1] // 2 + image_rspace0.shape[1] // 2 // zoom])
+                              image_rspace0.shape[1] // 2 + image_rspace0.shape[1] // 2 // zoom,
+                              image_rspace0.shape[1] // 2 - image_rspace0.shape[1] // 2 // zoom])
                     #
                     # constrained object-domain amplitude
                     im12 = ax[1,2].imshow(self.amp_rspace)
@@ -731,8 +731,8 @@ class PhaseRetrieval(object):
                     plt.colorbar(im10, ax=ax[1,2], fraction=0.046, pad=0.04)
                     ax[1,2].axis([image_rspace0.shape[0] // 2 - image_rspace0.shape[0] // 2 // zoom,
                               image_rspace0.shape[0] // 2 + image_rspace0.shape[0] // 2 // zoom,
-                              image_rspace0.shape[1] // 2 - image_rspace0.shape[1] // 2 // zoom,
-                              image_rspace0.shape[1] // 2 + image_rspace0.shape[1] // 2 // zoom])
+                              image_rspace0.shape[1] // 2 + image_rspace0.shape[1] // 2 // zoom,
+                              image_rspace0.shape[1] // 2 - image_rspace0.shape[1] // 2 // zoom])
                     #
                     # constrained object-domain phase
                     im13 = ax[1,3].imshow(phase_rspace_kk1_weighted, cmap='seismic', vmin=np.angle(image_rspace_kk1).min(), vmax=np.angle(image_rspace_kk1).max())
@@ -740,8 +740,8 @@ class PhaseRetrieval(object):
                     plt.colorbar(im11, ax=ax[1,3], fraction=0.046, pad=0.04)
                     ax[1,3].axis([image_rspace0.shape[0] // 2 - image_rspace0.shape[0] // 2 // zoom,
                               image_rspace0.shape[0] // 2 + image_rspace0.shape[0] // 2 // zoom,
-                              image_rspace0.shape[1] // 2 - image_rspace0.shape[1] // 2 // zoom,
-                              image_rspace0.shape[1] // 2 + image_rspace0.shape[1] // 2 // zoom])
+                              image_rspace0.shape[1] // 2 + image_rspace0.shape[1] // 2 // zoom,
+                              image_rspace0.shape[1] // 2 - image_rspace0.shape[1] // 2 // zoom])
                     #
                     fig.tight_layout()
                     display.clear_output(wait=True)
