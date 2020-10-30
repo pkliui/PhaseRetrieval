@@ -447,6 +447,7 @@ class KSpaceImage(object):
                               self.image.shape[0] // 2 - self.image.shape[0] // 2 // zoom,
                               self.image.shape[0] // 2 + self.image.shape[0] // 2 // zoom])
                     plt.colorbar(im)
+                    plt.gca().invert_yaxis()
                     plt.show()
                 #
                 # centre image
@@ -486,6 +487,7 @@ class KSpaceImage(object):
                                   im_centred.shape[1] // 2 + im_centred.shape[1] // 2 // (zoom * im_centred.shape[1]/self.image.shape[0]),
                                   im_centred.shape[0] // 2 - im_centred.shape[0] // 2 // (zoom * im_centred.shape[1]/self.image.shape[0]),
                                   im_centred.shape[0] // 2 + im_centred.shape[0] // 2 // (zoom * im_centred.shape[1]/self.image.shape[0])])
+                        plt.gca().invert_yaxis()
                         plt.show()
                     self.image = im_centred
                     self.metadata['Image centred and padded?'] = 'yes'
