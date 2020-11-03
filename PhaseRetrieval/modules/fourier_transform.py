@@ -1,11 +1,15 @@
+"""
+This module contains functions for computing direct and inverse centred Fourier transforms of 2D images.
+The transforms are as described in
+    T. Latyvevskaia and H.-W. Fink  "Practical algorithms for simulation and reconstruction of digital in-line holograms",
+    Appl. Optics 54, 2424 - 2434 (2015)
+"""
+
 import numpy as np
 
 def ft2d_centered(input_function):
     """
-    Centred Fourier transform  as described in
-    T. Latyvevskaia and H.-W. Fink  "Practical algorithms for simulation and reconstruction of digital in-line holograms",
-    Appl. Optics 54, 2424 - 2434 (2015)
-
+    Centred Fourier transform
     ---
     Parameters
     ---
@@ -31,10 +35,7 @@ def ft2d_centered(input_function):
 
 def ift2d_centered(input_function):
     """
-    Centred inverse Fourier transform  as described in
-    T. Latyvevskaia and H.-W. Fink  "Practical algorithms for simulation and reconstruction of digital in-line holograms",
-    Appl. Optics 54, 2424 - 2434 (2015)
-
+    Centred inverse Fourier transform
     ---
     Parameters
     ---
