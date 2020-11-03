@@ -2,7 +2,7 @@ import unittest
 
 from ddt import ddt
 
-import csv, io, os, shutil, tempfile
+import shutil, tempfile
 import pandas as pd
 import numpy as np
 
@@ -61,5 +61,5 @@ class TestFourierTransform(unittest.TestCase):
         energy_kspace = int(round(np.sum(np.sum(np.abs(image_ft) ** 2))))
         energy_rspace = int(round(image_ft_ft.shape[0] * image_ft_ft.shape[1] * np.sum(np.sum(np.abs(image_ft_ft)**2))))
         #
-        self.assertEqual(3*energy_kspace,energy_rspace)
+        self.assertEqual(energy_kspace,energy_rspace)
 
