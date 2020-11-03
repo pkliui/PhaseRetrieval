@@ -395,16 +395,8 @@ class PhaseRetrieval(object):
             image_kspace_kk = self.ft2d_centered(input_function = image_rspace_kk)
             image_kspace_kk_prime = self.amp_kspace * np.exp(1j * np.angle(image_kspace_kk))
             #
-            #check if the energies in both domains are equal
-            #print('energy k space ', np.sum(np.sum(np.abs(image_kspace_kk)**2)))
-            #print('energy real space ', image_rspace_kk.shape[0] * image_rspace_kk.shape[1] * np.sum(np.sum(np.abs(image_rspace_kk )**2)))
-            #
             #compute inverse Fourier transform
             image_rspace_kk_prime = self.ift2d_centered(input_function = image_kspace_kk_prime)
-            #
-            #check if the energies in both domains are equal
-            #print('energy k space ', np.sum(np.sum(np.abs(image_kspace_kk_prime)**2)))
-            #print('energy real space ', image_rspace_kk.shape[0] * image_rspace_kk.shape[1] * np.sum(np.sum(np.abs(image_rspace_kk_prime)**2)))
             #
             #apply constraints in object domain
             image_rspace_kk1 = self.amp_rspace * np.exp(1j * np.angle(image_rspace_kk_prime))
