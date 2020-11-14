@@ -90,7 +90,7 @@ class RSpaceImage(object):
             Delimiter used in the csv file.
             Default is a comma ','.
         """
-        if os.path.exists(filename) and delimiter is not None:
+        if os.path.exists(filename):
             # read the image from file
             # as there is no header in images, the header is set to None
             self.image = pd.read_csv(filename, delimiter, header=None)
