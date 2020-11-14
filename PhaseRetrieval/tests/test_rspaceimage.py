@@ -31,11 +31,20 @@ class TestRSpaceImageClass(unittest.TestCase):
         shutil.rmtree(self.test_dir)
 
     def test_empty_arguments(self):
-        for var in ['filename', 'delimiter', 'image']:
+        """
+        test the input arguments are existing and are all None
+        :return:
+        """
+        for var in ['filename', 'delimiter', 'image', 'image_apodization_filter']:
             self.assertIn(var, self.rs.__dict__)
             self.assertEqual(self.rs.__dict__[var], None)
 
     def test_read_from_csv(self):
+        """
+        test missing positional arguments
+        test non-existing path
+        :return:
+        """
         with self.assertRaises(TypeError):
             self.rs.read_from_csv()
         with self.assertRaises(ValueError):
@@ -43,12 +52,20 @@ class TestRSpaceImageClass(unittest.TestCase):
                              delimiter = ',')
 
     def test_read_from_tif(self):
+        """
+        testing to read some non-existing data
+        :return:
+        """
         with self.assertRaises(TypeError):
             self.rs.read_from_tif()
         with self.assertRaises(ValueError):
             self.rs.read_from_tif(filename='some_none_existing_data.tif')
 
     def test_plot_image(self):
+        """
+        testing the case when an input image object is None
+        :return:
+        """
         self.rs.image = None
         with self.assertRaises(ValueError):
             self.rs.plot_image()
