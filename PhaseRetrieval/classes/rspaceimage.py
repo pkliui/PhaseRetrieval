@@ -136,11 +136,6 @@ class RSpaceImage(object):
             Default is 1 (no zoom)
         """
         if self.image is not None:
-            # convert to numpy array
-            #if type(self.image) is not np.ndarray:
-            #    self.image = self.image.to_numpy()
-            #else:
-            #    pass
             # plot the image from file
             plt.imshow(self.image)
             plt.axis([self.image.shape[0] // 2 - self.image.shape[0] // 2 // zoom,
@@ -181,13 +176,11 @@ class RSpaceImage(object):
                 ax1, ax2 = ax
                 im1 = ax1.imshow(self.image)
                 ax1.set_title("Original")
-                #ax1.invert_yaxis()
                 plt.colorbar(im1,ax=ax1)
                 #
                 #
                 im2= ax2.imshow(np.rot90(self.image, times_rot, axes))
                 ax2.set_title("If rotated")
-                #ax2.invert_yaxis()
                 plt.colorbar(im2,ax=ax2)
                 plt.show()
             elif estimate_only is False:
@@ -200,15 +193,14 @@ class RSpaceImage(object):
                     ax1, ax2 = ax
                     im1 = ax1.imshow(self.image)
                     ax1.set_title("Original")
-                    #ax1.invert_yaxis()
                     plt.colorbar(im1,ax=ax1)
                     #
                     im2 = ax2.imshow(rotated)
                     ax2.set_title("Rotated")
-                    #ax2.invert_yaxis()
                     plt.colorbar(im2,ax=ax2)
                     plt.show()
                     #
+                # replace the image by its rotated version
                 self.image = rotated
         else:
             raise ValueError('Read the image data first!')
@@ -276,6 +268,7 @@ class RSpaceImage(object):
                     plt.colorbar(im2,ax=ax2)
                     plt.show()
                 #
+                # replace the image by its flipped version
                 self.image = flipped
         else:
             raise ValueError('Read the image data first!')
@@ -320,6 +313,7 @@ class RSpaceImage(object):
                         plt.title('self.image')
                         plt.colorbar()
                         plt.show()
+                    #
                     # compute Euclidean distance transform
                     im_distance = ndi.distance_transform_edt(self.image)
                     #
@@ -363,10 +357,13 @@ class RSpaceImage(object):
                     print("Object domain: Input and watershed images were padded to ", im_pad.shape[0], "X", im_pad.shape[1], "pixels.")
                     self.metadata['Linear number of pixels in the zero-padded real-space image']= npixels_pad
                     #
-                    # compute the object's centre as a centre of mass of the padded watershed distribution
+                    # compute the relative shift the segmented region's centroid w.r.t. the centre of the computational domain
+                    # (the tuple's items must be multiplied by -1 to ensure that in AffineTransform the shift occurs in the right direction)
+                    # the moments are rounded to ensure the centroid is not between the pixels
+                    # add 0.1 to round(im_moments ... / im_moments ... ) to round as per mathematical definition
                     im_moments = measure.moments(im_watershed_pad)
-                    im_centroid = (round(im_moments[0, 1] / im_moments[0, 0] - im_pad.shape[0] / 2),
-                                   round(im_moments[1, 0] / im_moments[0, 0] - im_pad.shape[1] / 2))
+                    im_centroids_shift = (-(int(im_pad.shape[0] / 2) - int(round(im_moments[1, 0] / im_moments[0, 0] + 0.1))),
+                                   -(int(im_pad.shape[1] / 2)  - int(round(im_moments[0, 1] / im_moments[0, 0] + 0.1))))
                     #
                     # find out physical linear pixel size
                     pixelsize_dr0 = round(1e3 * np.sqrt(linear_object_size**2 / np.count_nonzero(im_watershed_pad)), 0)
@@ -376,7 +373,7 @@ class RSpaceImage(object):
                     # (with or without the application of the apodization filter)
                     if apodization is False:
                         self.image = warp(im_pad,
-                                          AffineTransform(translation=im_centroid),
+                                          AffineTransform(translation=im_centroids_shift),
                                           mode='wrap',
                                           preserve_range=True)
                         print('Object domain: Image centred. Apodization was NOT applied. Linear pixel size is ', pixelsize_dr0, "nm")
@@ -390,7 +387,7 @@ class RSpaceImage(object):
                     else:
                         # compute apodization filter
                         image_apodization_filter = warp(im_watershed_pad,
-                                                        AffineTransform(translation=im_centroid),
+                                                        AffineTransform(translation=im_centroids_shift),
                                                         mode='wrap',
                                                         preserve_range=True)
                         image_apodization_filter = gaussian(image_apodization_filter,
@@ -407,7 +404,7 @@ class RSpaceImage(object):
                             plt.show()
                         #
                         self.image = image_apodization_filter * warp(im_pad,
-                                                                              AffineTransform(translation=im_centroid),
+                                                                              AffineTransform(translation=im_centroids_shift),
                                                                               mode='wrap',
                                                                               preserve_range=True)
                         print("Object domain: Image centred. Apodization filter was applied. Linear pixel size is ", pixelsize_dr0, "nm")
@@ -420,6 +417,8 @@ class RSpaceImage(object):
                             plt.show()
                     self.metadata['Image centred and padded?'] = 'yes'
                     self.metadata['Linear size of the object, m'] = linear_object_size
+
+                    return im_centroids_shift, pixelsize_dr0
                     #
                 else:
                     raise ValueError('Specified number of pixels for zero-padding is too low!')
@@ -496,6 +495,7 @@ class RSpaceImage(object):
                     plt.colorbar()
                     plt.show()
                 print("Object domain: Background of", counts, "counts was subtracted.")
+            return im_bgfree
         else:
             raise ValueError('Read the image data and centre it first!')
 
@@ -535,26 +535,17 @@ class RSpaceImage(object):
         """
         if self.image is not None:
             if self.metadata['Image centred and padded?'] == 'yes':
-                # read out pixel size in object domain
-                if pixelsize_dr0 is None:
-                    if self.metadata['Pixel size object domain, m'] is not None:
-                    # if none, read from metadata of it's not none
-                        pixelsize_dr0 = self.metadata['Pixel size object domain, m']
-                    else:
-                        raise ValueError('Pixel size object domain is None! Either specify the pixel size manually or determine it via centre_image method!')
-                else:
-                    #if not none save the pixel size in metadata and convert ot nm
-                    self.metadata['Pixel size object domain, m'] = pixelsize_dr0
-                #
-                npixels_pad = self.metadata['Linear number of pixels in the zero-padded real-space image']
-                alpha = fieldofview * np.pi / 180
                 #
                 # compute pixel size in Fourier domain
+                alpha = fieldofview * np.pi / 180
                 pixelsize_dk = (np.sin(alpha) * 2 * np.pi / lambd) / npixels_kspace
+                print("pixelssize_dk = ",pixelsize_dk)
                 self.metadata['Pixel size Fourier domain, 1/nm'] = pixelsize_dk * 1e9
                 #
-                # compute pixel size in the object domain
-                # as set by the discrete Fourier transform
+                # read out linear number of pixels in object domain
+                npixels_pad = self.metadata['Linear number of pixels in the zero-padded real-space image']
+                #
+                # compute pixel size in object domain as set by the discrete Fourier transform
                 pixelsize_dr_pad = 2*np.pi / (npixels_pad * pixelsize_dk)
                 self.metadata['Pixel size object domain from padded Fourier data, 1/nm'] = pixelsize_dr_pad * 1e9
                 #
@@ -575,7 +566,6 @@ class RSpaceImage(object):
                     self.image = pad(np.array(self.image), ((npixels_to_pad_final0, npixels_to_pad_final1), (npixels_to_pad_final0, npixels_to_pad_final1)), mode='constant')
                     #
                     #check if the final dimensions are of equal length
-                    #check if the inal dimensions are of equal length
                     if self.image.shape[0] == self.image.shape[1]:
                         #
                         #set the final linear number of pixels by the actual image size
@@ -601,11 +591,12 @@ class RSpaceImage(object):
                 self.metadata['Wavelength of light, m'] = lambd
                 self.metadata['Field of view, deg'] = fieldofview
                 self.metadata['Number of pixels within the field of view'] = npixels_kspace
+                #
             else:
                 raise ValueError('Centre and zero-pad image distribution!')
         else:
             raise ValueError('Read the image data first!')
-        return npixels_final
+        return pixelsize_dk, pixelsize_dr_pad, downsampling, npixels_final
 
     def save_as_tif(self, pathtosave=None, outputfilename=None):
         """
