@@ -124,158 +124,6 @@ class TestRSpaceImageClass(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.rs.flip_image()
 
-    def test_centre_image_watershed_empty_image(self):
-        """
-        test the case when an input image object is None
-        :return:
-        """
-        self.rs.image = None
-        with self.assertRaises(ValueError):
-            self.rs.centre_image_watershed()
-
-    def test_centre_image_watershed_too_big_npixels_pad(self):
-        """
-        test zero-padding input image to a fewer final linear number of pixels than that in the input image
-        :return:
-        """
-        #
-        # initialise input image sampled at n_signal x n_signal non-zero-valued pixels surrounded by a zero-padded region of width n_topad
-        n_signal = 3
-        n_topad = 2
-        self.rs.image = np.ones((n_signal ,n_signal))
-        self.rs.image = pad(self.rs.image,
-                     ((n_topad, n_topad),
-                      (n_topad, n_topad)),
-                     mode='constant')
-        #
-        with self.assertRaises(ValueError):
-            self.rs.centre_image_watershed(npixels_pad = 6, apodization=False)
-
-    def test_centre_image_watershed_im_centroids_shift(self):
-        """
-        test whether the shift of the image's centroid w.r.t. the image's computational centre  is computed correctly
-        :return:
-        """
-        #
-        # initialise input image sampled at n_signal x n_signal non-zero-valued pixels surrounded by a zero-padded region of width n_topad
-        # gives 6x6 image
-        n_signal = 2
-        n_topad = 2
-        #
-        self.rs.image = np.ones((n_signal, n_signal))
-        self.rs.image = pad(self.rs.image,
-                            ((n_topad, n_topad),
-                             (n_topad, n_topad)),
-                            mode='constant')
-        #
-        # pad this image to 10x10 pixels and check the centroid's shift of the segmented region w.r.t. the computational centre is (-2,-2)
-        im_centroids_shift, _ = self.rs.centre_image_watershed(npixels_pad=10)
-        self.assertEqual(im_centroids_shift, (-2,-2))
-
-    def test_centre_image_watershed_pixelsize(self):
-        """
-        test whether the pixel size  is computed correctly
-        :return:
-        """
-        #
-        # initialise input image sampled at n_signal x n_signal non-zero-valued pixels surrounded by a zero-padded region of width n_topad
-        # gives 6x6 image
-        # test even n_signal
-        n_signal = 2
-        n_topad = 2
-        #
-        self.rs.image = np.ones((n_signal, n_signal))
-        self.rs.image = pad(self.rs.image,
-                            ((n_topad, n_topad),
-                             (n_topad, n_topad)),
-                            mode='constant')
-        #
-        # pad this image to 10x10 pixels and check the pixel size is 5000
-        _, pixelsize_dr0 = self.rs.centre_image_watershed(npixels_pad=10, linear_object_size=10)
-        self.assertEqual(pixelsize_dr0, 5000.0)
-        #
-        #
-        # initialise input image sampled at n_signal x n_signal non-zero-valued pixels surrounded by a zero-padded region of width n_topad
-        # gives 6x6 image
-        # test odd n_signal
-        n_signal = 3
-        n_topad = 2
-        #
-        self.rs.image = np.ones((n_signal, n_signal))
-        self.rs.image = pad(self.rs.image,
-                            ((n_topad, n_topad),
-                             (n_topad, n_topad)),
-                            mode='constant')
-        #
-        # pad this image to 10x10 pixels and check the pixel size is 5000
-        _, pixelsize_dr0 = self.rs.centre_image_watershed(npixels_pad=10, linear_object_size=30)
-        self.assertEqual(pixelsize_dr0, 10000.0)
-
-    def test_centre_image_watershed_padding_size(self):
-        """
-        test whether the output image is padded to a specified npixels_pad linear size
-        :return:
-        """
-        #
-        # initialise input image sampled at n_signal x n_signal non-zero-valued pixels surrounded by a zero-padded region of width n_topad
-        # gives 6x6 image
-        # test even n_signal
-        n_signal = 2
-        n_topad = 2
-        #
-        self.rs.image = np.ones((n_signal ,n_signal ))
-        self.rs.image = pad(self.rs.image,
-                     ((n_topad, n_topad),
-                      (n_topad, n_topad)),
-                     mode='constant')
-        self.rs.centre_image_watershed(npixels_pad=20)
-        self.assertEqual(self.rs.image.shape[0], 20)
-        self.assertEqual(self.rs.image.shape[1], 20)
-        #
-        # initialise input image sampled at n_signal x n_signal non-zero-valued pixels surrounded by a zero-padded region of width n_topad
-        # gives 6x6 image
-        # test odd n_signal
-        n_signal = 3
-        n_topad = 2
-        #
-        self.rs.image = np.ones((n_signal ,n_signal ))
-        self.rs.image = pad(self.rs.image,
-                     ((n_topad, n_topad),
-                      (n_topad, n_topad)),
-                     mode='constant')
-        self.rs.centre_image_watershed(npixels_pad=20)
-        self.assertEqual(self.rs.image.shape[0], 20)
-        self.assertEqual(self.rs.image.shape[1], 20)
-
-    def test_centre_image_watershed_metadata(self):
-        """
-        test metadata
-        :return:
-        """
-        #
-        # initialise input image sampled at n_signal x n_signal non-zero-valued pixels surrounded by a zero-padded region of width n_topad
-        # gives 6x6 image
-        # test even n_signal
-        n_signal = 2
-        n_topad = 2
-        #
-        self.rs.image = np.ones((n_signal ,n_signal ))
-        self.rs.image = pad(self.rs.image,
-                     ((n_topad, n_topad),
-                      (n_topad, n_topad)),
-                     mode='constant')
-        #
-        _, pixelsize_dr0 = self.rs.centre_image_watershed(npixels_pad=20, apodization = False)
-        self.assertEqual(self.rs.metadata['Linear number of pixels in the zero-padded real-space image'], 20)
-        self.assertEqual(self.rs.metadata['Pixel size object domain, m'], pixelsize_dr0)
-        self.assertEqual(self.rs. metadata['Apodization filter applied?'], 'no' )
-        #
-        _, pixelsize_dr0 = self.rs.centre_image_watershed(npixels_pad=20, linear_object_size=1.0, apodization=True)
-        self.assertEqual(self.rs. metadata['Apodization filter applied?'], 'yes' )
-        self.assertEqual(self.rs.metadata['Image centred and padded?'], 'yes')
-        self.assertEqual(self.rs.metadata['Linear size of the object, m'], 1.0)
-
-
     def test_subtract_background_empty_image(self):
         """
         test the case when an input image object is None
@@ -294,6 +142,7 @@ class TestRSpaceImageClass(unittest.TestCase):
         counts_to_subtract = 2.0
         image_after_bg_subtraction = np.array([[0.0, 0.0, 0.0],[1.0, 2.5, 3.5],[4.0, 5.0, 6.0]])
         im_bgfree = self.rs.subtract_background(counts = counts_to_subtract, estimate_only = False)
+        print("im_bgfree", im_bgfree)
         #
         self.assertTrue(np.array_equal(im_bgfree, image_after_bg_subtraction))
 
@@ -308,6 +157,341 @@ class TestRSpaceImageClass(unittest.TestCase):
         im_bgfree = self.rs.subtract_background(counts = counts_to_subtract, estimate_only = False)
         #
         self.assertEqual(self.rs.metadata['Background subtracted?'], 'yes')
+
+    def test_segment_image_watershed_empty_image(self):
+        """
+        test the case when an input image object is None
+        :return:
+        """
+        self.rs.image = None
+        with self.assertRaises(ValueError):
+            self.rs.centre_image_watershed()
+
+    def test_segment_image_watershed_pixelsize(self):
+        """
+        test whether the pixel size  is computed correctly
+        :return:
+        """
+        #
+        # initialise input image sampled at n_signal x n_signal non-zero-valued pixels surrounded by a zero-padded region of width n_topad
+        # gives 8x8 image
+        n_signal = 4
+        n_topad = 2
+        #
+        self.rs.image = 3.0 * np.ones((n_signal, n_signal))
+        self.rs.image = pad(self.rs.image,
+                            ((n_topad, n_topad),
+                             (n_topad, n_topad)),
+                            mode='constant') + 2.0
+        #
+        # binarize input image using estimate_only mode of the subtract_background method (background = 2.0 here)
+        self.rs.subtract_background(counts=2.0,
+                               estimate_only=True,
+                               plot_progress=False)
+        #
+        # set the structuring element size to 1x1 pxls. This should yield a 4x4 non-zero-valued foreground after the opening (erosion by 1x1 str.element + dilation by 1x1 str.element)
+        pixelsize_dr0 = self.rs.segment_image_watershed(linear_object_size=10, str_element_size = 1, plot_progress=False)
+        self.assertEqual(pixelsize_dr0, 2500.0)
+
+    def test_segment_image_watershed_metadata(self):
+        """
+        test metadata
+        :return:
+        """
+        #
+        # initialise input image sampled at n_signal x n_signal non-zero-valued pixels surrounded by a zero-padded region of width n_topad
+        # gives 6x6 image
+        # test even n_signal
+        n_signal = 4
+        n_topad = 2
+        #
+        self.rs.image = 3.0 * np.ones((n_signal ,n_signal ))
+        self.rs.image = pad(self.rs.image,
+                     ((n_topad, n_topad),
+                      (n_topad, n_topad)),
+                     mode='constant') + 2.0
+        #
+        # binarize input image using estimate_only mode of the subtract_background method (background = 2.0 here)
+        self.rs.subtract_background(counts=2.0,
+                               estimate_only=True,
+                               plot_progress=False)
+        #
+        pixelsize_dr0 = self.rs.segment_image_watershed(linear_object_size=10, str_element_size = 1, plot_progress=False)
+        self.assertEqual(self.rs.metadata['Pixel size object domain, m'], pixelsize_dr0)
+        self.assertEqual(self.rs.metadata['Linear size of the object, m'], 10)
+
+    def test_segment_image_opening_empty_image(self):
+        """
+        test the case when an input image object is None
+        :return:
+        """
+        self.rs.image = None
+        with self.assertRaises(ValueError):
+            self.rs.segment_image_opening()
+
+    def test_segment_image_opening_pixelsize(self):
+        """
+        test whether the pixel size  is computed correctly
+        :return:
+        """
+        #
+        # initialise input image sampled at n_signal x n_signal non-zero-valued pixels surrounded by a zero-padded region of width n_topad
+        # gives 8x8 image
+        n_signal = 4
+        n_topad = 2
+        #
+        self.rs.image = 3.0 * np.ones((n_signal, n_signal))
+        self.rs.image = pad(self.rs.image,
+                            ((n_topad, n_topad),
+                             (n_topad, n_topad)),
+                            mode='constant') + 2.0
+        #
+        # binarize input image using estimate_only mode of the subtract_background method (background = 2.0 here)
+        self.rs.subtract_background(counts=2.0,
+                               estimate_only=True,
+                               plot_progress=False)
+        #
+        # set the structuring element size to 1x1 pxls. This should yield a 4x4 non-zero-valued foreground after the opening (erosion by 1x1 str.element + dilation by 1x1 str.element)
+        pixelsize_dr0 = self.rs.segment_image_opening(linear_object_size=10, str_element_size = 1, plot_progress=False)
+        self.assertEqual(pixelsize_dr0, 2500.0)
+
+    def test_segment_image_opening_metadata(self):
+        """
+        test metadata
+        :return:
+        """
+        #
+        # initialise input image sampled at n_signal x n_signal non-zero-valued pixels surrounded by a zero-padded region of width n_topad
+        # gives 6x6 image
+        # test even n_signal
+        n_signal = 4
+        n_topad = 2
+        #
+        self.rs.image = 3.0 * np.ones((n_signal ,n_signal ))
+        self.rs.image = pad(self.rs.image,
+                     ((n_topad, n_topad),
+                      (n_topad, n_topad)),
+                     mode='constant') + 2.0
+        #
+        # binarize input image using estimate_only mode of the subtract_background method (background = 2.0 here)
+        self.rs.subtract_background(counts=2.0,
+                               estimate_only=True,
+                               plot_progress=False)
+        #
+        pixelsize_dr0 = self.rs.segment_image_opening(linear_object_size=10, str_element_size = 1, plot_progress=False)
+        self.assertEqual(self.rs.metadata['Pixel size object domain, m'], pixelsize_dr0)
+        self.assertEqual(self.rs.metadata['Linear size of the object, m'], 10)
+
+    def test_segment_image_kmeans_empty_image(self):
+        """
+        test the case when an input image object is None
+        :return:
+        """
+        self.rs.image = None
+        with self.assertRaises(ValueError):
+            self.rs.segment_image_kmeans()
+
+    def test_segment_image_kmeans_pixelsize(self):
+        """
+        test whether the pixel size  is computed correctly
+        :return:
+        """
+        #
+        # initialise input image sampled at n_signal x n_signal non-zero-valued pixels surrounded by a zero-padded region of width n_topad
+        # gives 8x8 image
+        n_signal = 4
+        n_topad = 2
+        #
+        self.rs.image = 3.0 * np.ones((n_signal, n_signal))
+        self.rs.image = pad(self.rs.image,
+                            ((n_topad, n_topad),
+                             (n_topad, n_topad)),
+                            mode='constant') + 2.0
+        #
+        # set the structuring element size to 1x1 pxls. This should yield a 4x4 non-zero-valued foreground after the opening (erosion by 1x1 str.element + dilation by 1x1 str.element)
+        pixelsize_dr0 = self.rs.segment_image_kmeans(n_clusters=2, init="k-means++", n_init = 10, max_iter = 300, tol = 1e-4,
+                        algorithm='elkan', str_element_size = 1, linear_object_size=10, plot_progress = False)
+        self.assertEqual(pixelsize_dr0, 2500.0)
+
+    def test_segment_image_kmeans(self):
+        """
+        test metadata
+        :return:
+        """
+        #
+        # initialise input image sampled at n_signal x n_signal non-zero-valued pixels surrounded by a zero-padded region of width n_topad
+        # gives 8x8 image
+        n_signal = 4
+        n_topad = 2
+        #
+        self.rs.image = 3.0 * np.ones((n_signal, n_signal))
+        self.rs.image = pad(self.rs.image,
+                            ((n_topad, n_topad),
+                             (n_topad, n_topad)),
+                            mode='constant') + 2.0
+        #
+        # set the structuring element size to 1x1 pxls. This should yield a 4x4 non-zero-valued foreground after the opening (erosion by 1x1 str.element + dilation by 1x1 str.element)
+        pixelsize_dr0 = self.rs.segment_image_kmeans(n_clusters=2, init="k-means++", n_init = 10, max_iter = 300, tol = 1e-4,
+                        algorithm='elkan', str_element_size = 1, linear_object_size=10, plot_progress = False)
+        #
+        self.assertEqual(self.rs.metadata['Pixel size object domain, m'], pixelsize_dr0)
+        self.assertEqual(self.rs.metadata['Linear size of the object, m'], 10)
+
+    def test_centre_image_empty_image(self):
+        """
+        test the case when an input image object is None
+        :return:
+        """
+        self.rs.image = None
+        with self.assertRaises(ValueError):
+            self.rs.centre_image()
+
+    def test_centre_image_empty_image_segmented(self):
+        """
+        test the case when an input image object is None
+        :return:
+        """
+        self.rs.image = np.ones((2 ,2))
+        self.rs.image_segmented = None
+        with self.assertRaises(ValueError):
+            self.rs.centre_image()
+
+    def test_centre_image_empty_npixels_pad(self):
+        """
+        test the case when an input image object is None
+        :return:
+        """
+        self.rs.image = np.ones((2 ,2))
+        self.rs.image_segmented = np.ones((2 ,2))
+        with self.assertRaises(ValueError):
+            self.rs.centre_image(npixels_pad = None)
+
+
+    def test_center_image_low_npixels_pad(self):
+        """
+        test zero-padding input image to a fewer final linear number of pixels than that in the input image
+        :return:
+        """
+        #
+        # initialise input image sampled at n_signal x n_signal non-zero-valued pixels surrounded by a zero-padded region of width n_topad
+        # gives 8x8 image
+        n_signal = 4
+        n_topad = 2
+        #
+        self.rs.image = 3.0 * np.ones((n_signal, n_signal))
+        self.rs.image = pad(self.rs.image,
+                            ((n_topad, n_topad),
+                             (n_topad, n_topad)),
+                            mode='constant') + 2.0
+        #
+        # segment the image prior to centering
+        self.rs.segment_image_kmeans(n_clusters=2, init="k-means++", n_init=10, max_iter=300, tol=1e-4,
+                                     algorithm='elkan', str_element_size=1, linear_object_size=10, plot_progress=False)
+        #
+        with self.assertRaises(ValueError):
+            self.rs.centre_image(npixels_pad = 6, apodization=False)
+
+    def test_centre_image_im_centroids_shift(self):
+        """
+        test whether the shift of the image's centroid w.r.t. the image's computational centre  is computed correctly
+        :return:
+        """
+        #
+        # initialise input image sampled at n_signal x n_signal non-zero-valued pixels surrounded by a zero-padded region of width n_topad
+        # gives 8x8 image
+        n_signal = 4
+        n_topad = 2
+        #
+        self.rs.image = 3.0 * np.ones((n_signal, n_signal))
+        self.rs.image = pad(self.rs.image,
+                            ((n_topad, n_topad),
+                             (n_topad, n_topad)),
+                            mode='constant') + 2.0
+        #
+        # segment the image prior to centering
+        self.rs.segment_image_kmeans(n_clusters=2, init="k-means++", n_init=10, max_iter=300, tol=1e-4,
+                                     algorithm='elkan', str_element_size=1, linear_object_size=10, plot_progress=False)
+        print("segmented image: ", self.rs.image_segmented)
+        #
+        # pad this image to 12x12 pixels and check the centroid's shift of the segmented region w.r.t. the computational centre is (-2,-2)
+        im_centroids_shift  = self.rs.centre_image(npixels_pad=12)
+        print("im_centroids_shift = ", im_centroids_shift)
+        print("centered original image: ", self.rs.image)
+        self.assertEqual(im_centroids_shift, (-2,-2))
+
+
+
+    def test_centre_image_padding_size(self):
+        """
+        test whether the output image is padded to a specified npixels_pad linear size
+        :return:
+        """
+        #
+        # initialise input image sampled at n_signal x n_signal non-zero-valued pixels surrounded by a zero-padded region of width n_topad
+        # gives 6x6 image
+        # test even n_signal
+        n_signal = 2
+        n_topad = 2
+        #
+        self.rs.image = np.ones((n_signal ,n_signal ))
+        self.rs.image = pad(self.rs.image,
+                     ((n_topad, n_topad),
+                      (n_topad, n_topad)),
+                     mode='constant')
+        #
+        # mimic image_segmentation
+        self.rs.image_segmented = np.copy(self.rs.image)
+        #
+        # centre image
+        self.rs.centre_image(npixels_pad=20)
+        self.assertEqual(self.rs.image.shape[0], 20)
+        self.assertEqual(self.rs.image.shape[1], 20)
+        #
+        # initialise input image sampled at n_signal x n_signal non-zero-valued pixels surrounded by a zero-padded region of width n_topad
+        # gives 7x7 image
+        # test odd n_signal
+        n_signal = 3
+        n_topad = 2
+        #
+        self.rs.image = np.ones((n_signal ,n_signal ))
+        self.rs.image = pad(self.rs.image,
+                     ((n_topad, n_topad),
+                      (n_topad, n_topad)),
+                     mode='constant')
+        #
+        # mimic image_segmentation
+        self.rs.image_segmented = np.copy(self.rs.image)
+        #
+        # centre image
+        self.rs.centre_image(npixels_pad=20)
+        self.assertEqual(self.rs.image.shape[0], 20)
+        self.assertEqual(self.rs.image.shape[1], 20)
+
+    def test_centre_image_metadata(self):
+        """
+        test metadata
+        :return:
+        """
+        #
+        # initialise input image sampled at n_signal x n_signal non-zero-valued pixels surrounded by a zero-padded region of width n_topad
+        # gives 6x6 image
+        # test even n_signal
+        n_signal = 2
+        n_topad = 2
+        #
+        self.rs.image = np.ones((n_signal ,n_signal ))
+        self.rs.image = pad(self.rs.image,
+                     ((n_topad, n_topad),
+                      (n_topad, n_topad)),
+                     mode='constant')
+        #
+        # mimic image_segmentation
+        self.rs.image_segmented = np.copy(self.rs.image)
+        #
+        # centre image
+        _ = self.rs.centre_image(npixels_pad=20, apodization = False)
+        self.assertEqual(self.rs.metadata['Linear number of pixels in the zero-padded real-space image'], 20)
+        self.assertEqual(self.rs. metadata['Apodization filter applied?'], 'no' )
 
     def test_resample_image_empty_image(self):
         """
