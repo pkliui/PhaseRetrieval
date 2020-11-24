@@ -9,6 +9,7 @@ from matplotlib import pyplot as plt
 from skimage.exposure import rescale_intensity
 import os
 from PIL import Image
+from skimage import io
 import time
 
 
@@ -64,8 +65,8 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
     if os.path.exists(amplitude_filename):
         # read amplitude image
         if amplitude_filename[-4:] == '.tif':
-            #amplitude = io.imread(amplitude_filename)
-            amplitude = np.asarray(Image.open(amplitude_filename))
+            amplitude = io.imread(amplitude_filename)
+            #amplitude = np.asarray(Image.open(amplitude_filename))
         elif amplitude_filename[-4:] == '.csv':
             amplitude = pd.read_csv(amplitude_filename, delimiter=delimiter, header=None).values
         else:
@@ -166,6 +167,7 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
                                 theshape[0] // 2 + theshape[0] // 2 // zoom,
                                 theshape[1] // 2 - theshape[1] // 2 // zoom,
                                 theshape[1] // 2 + theshape[1] // 2 // zoom])
+                    ax[0].set_ylim(ax[0].get_ylim()[::-1])
                     #
                     # computed Fourier phase
                     im01 = ax[1].imshow(aligned_phases_weighted, cmap='seismic', vmin=aligned_phase.min(),
@@ -176,6 +178,7 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
                                 theshape[0] // 2 + theshape[0] // 2 // zoom,
                                 theshape[1] // 2 - theshape[1] // 2 // zoom,
                                 theshape[1] // 2 + theshape[1] // 2 // zoom])
+                    ax[1].set_ylim(ax[1].get_ylim()[::-1])
                     #
                     fig.tight_layout()
                     display.clear_output(wait=True)
@@ -232,8 +235,8 @@ def plot_reconstruction(amplitude_filename = None,
     if os.path.exists(amplitude_filename):
         # read amplitude image
         if amplitude_filename[-4:] == '.tif':
-            # amplitude = io.imread(amplitude_filename)
-            amplitude0 = np.asarray(Image.open(amplitude_filename))
+            amplitude0 = io.imread(amplitude_filename)
+            # amplitude0 = np.asarray(Image.open(amplitude_filename))
             amplitude = amplitude0 / np.max(amplitude0)
         elif amplitude_filename[-4:] == '.csv':
             amplitude0 = pd.read_csv(amplitude_filename, delimiter='\t', header=None).values
@@ -266,6 +269,7 @@ def plot_reconstruction(amplitude_filename = None,
                 theshape[0] // 2 + theshape[0] // 2 // zoom,
                 theshape[1] // 2 - theshape[1] // 2 // zoom,
                 theshape[1] // 2 + theshape[1] // 2 // zoom])
+    ax[0].set_ylim(ax[0].get_ylim()[::-1])
     #
     # computed Fourier phase
     im01 = ax[1].imshow(phase_weighted, cmap='seismic', vmin=phase.min(),
@@ -276,6 +280,7 @@ def plot_reconstruction(amplitude_filename = None,
                 theshape[0] // 2 + theshape[0] // 2 // zoom,
                 theshape[1] // 2 - theshape[1] // 2 // zoom,
                 theshape[1] // 2 + theshape[1] // 2 // zoom])
+    ax[1].set_ylim(ax[1].get_ylim()[::-1])
 
     if save_as_eps is True:
         #ax[1].set_rasterization_zorder(0)
