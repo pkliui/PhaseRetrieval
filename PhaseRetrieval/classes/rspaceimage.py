@@ -961,13 +961,23 @@ class RSpaceImage(object):
         else:
             raise ValueError('Read the image data first!')
 
-    def subtract_background(self, counts = 0, zoom = 1, log_scale = False, estimate_only = True, plot_progress = False):
+    def subtract_background(self, noise_mean = False, patch_corner = (0,0), patch_size = (100,100), counts = 0, zoom = 1,  log_scale = False, estimate_only = True, plot_progress = False):
         """
         Subtracts constant background given a number of counts
 
         ---
         Parameters
         ---
+        noise_mean : bool, optional
+            If False, the number of counts to subtract is set by "counts"
+            If True, the number of counts is the mean pixel value in the patch set by "patch_corner" and "patch_size"
+            Default is False.
+        patch_corner : tuple of int, optional
+            Sets the upper left corner of the patch to estimate the noise mean
+            Default is (0,0)
+        patch_size : tuple of int, optional
+            Sets the size of the path to estimate the noise mean
+            Default is (100,100).
         counts: int, optional
             Number of background counts to subtract from the image
             Estimated manually by the user (e.g. from a histogram)
@@ -987,8 +997,15 @@ class RSpaceImage(object):
             Default is False
         """
         if self.image is not None:
+            #
+            if noise_mean is True:
+                counts_to_subtract = np.mean(self.image[patch_corner[0]:patch_corner[0]+patch_size[0], patch_corner[1]:patch_corner[1]+patch_size[1]])
+            else:
+                counts_to_subtract = counts
+            #
+            # subtract background and threshold the resulting image
             im_bgfree = np.copy(self.image)
-            im_bgfree = im_bgfree - counts
+            im_bgfree = im_bgfree - counts_to_subtract
             im_bgfree[im_bgfree < 0] = 0
             #
             if estimate_only == True:
@@ -1009,17 +1026,7 @@ class RSpaceImage(object):
                     plt.show()
                     print("Object domain: This is how the image looks like if the background were subtracted.")
                     print("Object domain: Background was set to ", counts)
-                #
-                # binarize image
-                image_binary = np.copy(im_bgfree)
-                image_binary[image_binary>0]=1
-                self.image_binary = image_binary
             else:
-                #
-                # binarize image
-                image_binary = np.copy(im_bgfree)
-                image_binary[image_binary>0]=1
-                self.image_binary = image_binary
                 #
                 # subtract background and save changes
                 self.image = im_bgfree
@@ -1040,6 +1047,12 @@ class RSpaceImage(object):
                     plt.colorbar()
                     plt.show()
                 print("Object domain: Background of", counts, "counts was subtracted.")
+            #
+            # binarize image
+            image_binary = np.copy(im_bgfree)
+            image_binary[image_binary > 0] = 1
+            self.image_binary = image_binary
+            #
             return im_bgfree
         else:
             raise ValueError('Read the image data and centre it first!')
