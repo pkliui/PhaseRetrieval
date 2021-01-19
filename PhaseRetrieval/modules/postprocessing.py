@@ -65,10 +65,11 @@ def phase_alignment_gerchberg_saxton(amplitude_filename = None,
     if os.path.exists(amplitude_filename):
         # read amplitude image
         if amplitude_filename[-4:] == '.tif':
-            amplitude = io.imread(amplitude_filename)
+            # make sure to convert intensities to amplitudes
+            amplitude = np.sqrt(io.imread(amplitude_filename))
             #amplitude = np.asarray(Image.open(amplitude_filename))
         elif amplitude_filename[-4:] == '.csv':
-            amplitude = pd.read_csv(amplitude_filename, delimiter=delimiter, header=None).values
+            amplitude = np.sqrt(pd.read_csv(amplitude_filename, delimiter=delimiter, header=None).values)
         else:
             raise ValueError("Data must be either in tif or csv format.")
     else:
@@ -235,11 +236,13 @@ def plot_reconstruction(amplitude_filename = None,
     if os.path.exists(amplitude_filename):
         # read amplitude image
         if amplitude_filename[-4:] == '.tif':
-            amplitude0 = io.imread(amplitude_filename)
+            # convert intensity to amplitude
+            amplitude0 = np.sqrt(io.imread(amplitude_filename))
             # amplitude0 = np.asarray(Image.open(amplitude_filename))
             amplitude = amplitude0 / np.max(amplitude0)
         elif amplitude_filename[-4:] == '.csv':
-            amplitude0 = pd.read_csv(amplitude_filename, delimiter='\t', header=None).values
+            # convert intensity to amplitude
+            amplitude0 = np.sqrt(pd.read_csv(amplitude_filename, delimiter='\t', header=None).values)
             amplitude = amplitude0 / np.max(amplitude0)
         else:
             raise ValueError("Data must be either in tif or csv format.")

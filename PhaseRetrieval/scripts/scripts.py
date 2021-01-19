@@ -358,19 +358,19 @@ def gerchberg_saxton_script(datapath = None,
     ks_filenames = sorted([file for file in filenames_list if ks_prefix in file], key=os.path.getmtime)
     print(enumerate(sorted(ks_filenames)))
 
-    #first go through all object-domain files
+    #first go through all object-domain files (intensity distributions)
     for rs_idx, rs_file in enumerate(rs_filenames):
         #create folder having the name of  the current  file
         folderName = rs_file[-len(str(rs_filenames))+4: -14]
         #
-        #copy object-domain data
+        #copy object-domain data (intensity distributions)
         if not os.path.exists(folderName):
             os.mkdir(folderName)
             shutil.copy(rs_file, folderName)
         else:
             shutil.copy(rs_file, folderName)
         #
-        #now go through all Fourier-domain files and copy them to the respective folders
+        #now go through all Fourier-domain files (intensity distributions) and copy them to the respective folders
         for _, ks_file in enumerate(ks_filenames):
             ks_file = ks_filenames[rs_idx]
             if os.path.exists(folderName):
