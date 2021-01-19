@@ -158,6 +158,18 @@ class TestRSpaceImageClass(unittest.TestCase):
         #
         self.assertEqual(self.rs.metadata['Background subtracted?'], 'yes')
 
+    def test_subtract_background_mean_noise(self):
+        """
+        test subtracting mean noise value computed from the patch
+        :return:
+        """
+        self.rs.image = np.array([[0.0, 1.0, 2.0],[3.0, 4.0, 5.5],[6.0, 7.0, 8.0]])
+        image_after_bg_subtraction = np.array([[0.0, 0.0, 0.0],[1.0, 2.0, 3.5],[4.0, 5.0, 6.0]])
+        im_bgfree = self.rs.subtract_background(noise_mean= True, patch_corner=(0,0), patch_size=(2,2), estimate_only = False)
+        #counts_to_subtract obtained from the mean pixel value within the patch = 2.0
+        #
+        self.assertTrue(np.array_equal(im_bgfree, image_after_bg_subtraction))
+
     def test_segment_image_watershed_empty_image(self):
         """
         test the case when an input image object is None
