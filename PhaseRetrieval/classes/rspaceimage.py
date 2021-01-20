@@ -9,6 +9,7 @@ import os
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
+import matplotlib.patches as patches
 from scipy import ndimage as ndi
 from skimage import feature
 from skimage import filters
@@ -961,7 +962,7 @@ class RSpaceImage(object):
         else:
             raise ValueError('Read the image data first!')
 
-    def subtract_background(self, noise_mean = False, patch_corner = (0,0), patch_size = (100,100), counts = 0, zoom = 1,  log_scale = False, estimate_only = True, plot_progress = False):
+    def subtract_background(self, noise_mean = False, patch_corner = (0,0), patch_size = (0,0), counts = 0, zoom = 1,  log_scale = False, estimate_only = True, plot_progress = False):
         """
         Subtracts constant background given a number of counts
 
@@ -977,7 +978,7 @@ class RSpaceImage(object):
             Default is (0,0)
         patch_size : tuple of int, optional
             Sets the size of the path to estimate the noise mean
-            Default is (100,100).
+            Default is (0,0).
         counts: int, optional
             Number of background counts to subtract from the image
             Estimated manually by the user (e.g. from a histogram)
@@ -1013,9 +1014,27 @@ class RSpaceImage(object):
                 if plot_progress == True:
                     if log_scale == True:
                         plt.imshow(np.log(im_bgfree))
+                        # plot the patch contour too
+                        ax = plt.gca()
+                        rect = patches.Rectangle((patch_corner[0], patch_corner[1]),
+                                                 patch_size[0],
+                                                 patch_size[1],
+                                                 linewidth=2,
+                                                 edgecolor='red',
+                                                 fill=False)
+                        ax.add_patch(rect)
                         plt.title("If background-subtracted (log scale)")
                     else:
                         plt.imshow(im_bgfree)
+                        # plot the patch contour too
+                        ax = plt.gca()
+                        rect = patches.Rectangle((patch_corner[0], patch_corner[1]),
+                                                 patch_size[0],
+                                                 patch_size[1],
+                                                 linewidth=2,
+                                                 edgecolor='red',
+                                                 fill=False)
+                        ax.add_patch(rect)
                         plt.title("If background-subtracted")
                     plt.axis([im_bgfree.shape[0] // 2 - im_bgfree.shape[0] // 2 // zoom,
                               im_bgfree.shape[0] // 2 + im_bgfree.shape[0] // 2 // zoom,
@@ -1035,6 +1054,15 @@ class RSpaceImage(object):
                 if plot_progress is True:
                     if log_scale == True:
                         plt.imshow(np.log(self.image))
+                        # plot the patch contour too
+                        ax = plt.gca()
+                        rect = patches.Rectangle((patch_corner[0], patch_corner[1]),
+                                                 patch_size[0],
+                                                 patch_size[1],
+                                                 linewidth=2,
+                                                 edgecolor='red',
+                                                 fill=False)
+                        ax.add_patch(rect)
                         print('Object domain: Plotted in log scale')
                     else:
                         plt.imshow(self.image)
