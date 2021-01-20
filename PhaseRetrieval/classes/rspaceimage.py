@@ -567,7 +567,7 @@ class RSpaceImage(object):
 
     def centre_image(self, npixels_pad=2000, apodization=False, plot_progress = False):
         """
-        Centers object-domain image after its segmentation.
+        Centers object-domain image after its segmentation by computing its centre of mass.
         Completes zero-padding of the original image to a specified linear number of pixels
         Applies an apodization filter to smooth boundaries of the object distribution (optional)
 
