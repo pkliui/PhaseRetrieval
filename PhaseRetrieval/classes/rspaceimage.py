@@ -289,282 +289,6 @@ class RSpaceImage(object):
         else:
             raise ValueError('Read the image data first!')
 
-    def centre_image_watershed(self, linear_object_size=100e-6, npixels_pad=2000, apodization=False, plot_progress = False):
-        """
-        Centers the object-domain image using watershed algorithm (the existence of only a single blob is assumed).
-        Finds its physical linear pixel size and saves this information into image's metadata.
-        Completes zero-padding of the original image to a specified linear number of pixels
-        Applies an apodization filter to smooth boundaries of the object distribution (optional)
-
-        ---
-        Parameters
-        ---
-        linear_object_size: float, optional
-            Physical linear size of the (non-zero-valued) input object distribution, in m.
-            Default is 100 micrometer.
-        npixels_pad: int, optional
-            Linear number of pixels in the zero-padded object-domain image.
-            Default is 2000.
-        apodization: bool, optional
-            If True, the boundaries of the object distribution will be smoothed using Gaussian filter
-            with standard deviation = 3 pixels and truncation of the filter's boundaries to 2
-            (fixed at the moment, but may/should be changed in the future)
-            Default is False
-        plot_progress: bool, optional
-            Plot images.
-            Default is False
-        """
-        if self.image is not None:
-            if linear_object_size is not None and npixels_pad is not None:
-                if npixels_pad >= self.image.shape[0] or npixels_pad >= self.image.shape[1]:
-                    #
-                    #convert to numpy array
-                    if type(self.image) is not np.ndarray:
-                        self.image = self.image.to_numpy()
-                    else:
-                        pass
-                    #
-                    if plot_progress is True:
-                        plt.imshow(self.image)
-                        plt.title('self.image')
-                        plt.colorbar()
-                        plt.show()
-                    #
-                    # compute Euclidean distance transform of the binary image to find local maxima
-                    plt.imshow(self.image_binary)
-                    plt.title('binary by bg subtraction and thresholding')
-                    plt.colorbar()
-                    plt.show()
-
-                    # noise removal
-                    kernel = np.ones((110, 110), np.float64)
-                    print(self.image_binary)
-                    opening = cv2.morphologyEx(self.image_binary.astype(np.float64), cv2.MORPH_OPEN, kernel, iterations=2)
-                    plt.imshow(opening)
-                    plt.title('opening')
-                    plt.colorbar()
-                    plt.show()
-                    # sure foreground area
-                    sure_fg = cv2.erode(opening, kernel, iterations=1)
-                    plt.imshow(sure_fg)
-                    plt.title('max pixel values show sure_fg')
-                    plt.colorbar()
-                    plt.show()
-                    # sure background area
-                    sure_bg = cv2.dilate(opening, kernel, iterations=1)
-                    print('sure_bg ', sure_bg.dtype)
-                    plt.imshow(sure_bg)
-                    plt.title('min pixel values show sure_bg')
-                    plt.colorbar()
-                    plt.show()
-                    # Finding unknown region
-                    #sure_fg = np.uint8(sure_fg)
-                    unknown = sure_bg - sure_fg
-                    print('unknown ', unknown.dtype)
-                    plt.imshow(unknown)
-                    plt.title('unknown')
-                    plt.colorbar()
-                    plt.show()
-                    #
-                    #
-                    # Marker labelling
-                    _, markers = cv2.connectedComponents(sure_fg.astype(np.uint8))
-                    # Add one to all labels so that sure background is not 0, but 1
-                    markers = markers + 1
-                    # Now, mark the region of unknown with zero
-                    markers[unknown == 1] = 0
-                    markers = markers.astype('int32')
-                    plt.imshow(markers)
-                    plt.title('markers')
-                    plt.colorbar()
-                    plt.show()
-                    #
-                    # watershed
-                    print(self.image.dtype)
-
-
-                    image4watershed = np.copy(self.image)
-                    image4watershed = filters.gaussian(image4watershed, sigma = 3)
-                    image4watershed = image4watershed/np.max(image4watershed)
-                    image4watershed = 255 * image4watershed
-
-                    image4watershed = cv2.cvtColor(image4watershed.astype(np.uint8), cv2.COLOR_GRAY2BGR)
-                    plt.imshow(image4watershed)
-                    plt.title('image4watershed')
-                    plt.colorbar()
-                    plt.show()
-
-                    markers_watershed = cv2.watershed(image4watershed, markers)
-                    plt.imshow(markers_watershed)
-                    plt.title('markers after segmentation')
-                    plt.colorbar()
-                    plt.show()
-
-                    markers_watershed[markers_watershed <2]=0
-                    markers_watershed[markers_watershed == 2] = 1
-                    plt.imshow(markers_watershed)
-                    plt.title('markers after segmentation')
-                    plt.colorbar()
-                    plt.show()
-
-                    image = markers_watershed * self.image
-                    plt.imshow(image)
-                    plt.title('image after segmentation with watershed')
-                    plt.colorbar()
-                    plt.show()
-
-                    image = opening * self.image
-                    plt.imshow(image)
-                    plt.title('image after segmentation with opening')
-                    plt.colorbar()
-                    plt.show()
-
-                    #self.image[markers == -1] = [255, 0, 0]
-                    # Finding sure foreground area
-                    #dist_transform = cv2.distanceTransform(opening, distanceType=cv2.DIST_L2, maskSize=5)
-                    #ret, sure_fg = cv2.threshold(dist_transform, 0.7 * dist_transform.max(), 255, 0)
-
-                    # Finding unknown region
-                    #sure_fg = np.uint8(sure_fg)
-                    #unknown = cv2.subtract(sure_bg, sure_fg)
-                    #
-                    # Marker labelling
-                    #ret, markers = cv2.connectedComponents(sure_fg)
-
-                    # Add one to all labels so that sure background is not 0, but 1
-                    #markers = markers + 1
-
-                    # Now, mark the region of unknown with zero
-                    #markers[unknown == 255] = 0
-
-                    im_distance = ndi.distance_transform_edt(self.image_binary)
-                    #
-                    if plot_progress is True:
-                        plt.imshow(im_distance)
-                        plt.title('Output of the distance transform algorithm')
-                        plt.colorbar()
-                        plt.show()
-                    #
-                    # find local maximum (only 1 in this case)
-                    im_local_maxi = feature.peak_local_max(im_distance,
-                                                           indices=False,
-                                                           num_peaks=1)
-                    #
-                    # compute image gradient using Sobel filter
-                    #im_gradient = filters.sobel(filters.gaussian(self.image, sigma=5))
-                    #im_gradient = im_gradient / np.max(im_gradient)
-
-                    # image gradient
-                    denoised = rank.median(self.image, disk(2))
-                    im_gradient = rank.gradient(denoised, disk(2))
-                    plt.imshow(im_gradient)
-                    plt.colorbar()
-                    plt.title("gradient")
-                    plt.show()
-
-
-                    #
-                    # apply watershed algorithm
-                    # use the negative of the distance transform as "the landscape"
-                    # use local maxima of the distance transform as "the markers of the valleys"
-                    im_watershed = 1 * watershed(im_gradient,
-                                                 markers=im_local_maxi)
-                    #
-                    if plot_progress is True:
-                        plt.imshow(im_watershed)
-                        plt.title('Output of the watershed algorithm')
-                        plt.colorbar()
-                        plt.show()
-                    #
-                    #now pad original image and watershed image
-                    im_pad = pad(self.image,
-                                ((0, npixels_pad - self.image.shape[0]),
-                                (0, npixels_pad - self.image.shape[1])),
-                                mode='constant')
-                    im_watershed_pad = pad(im_watershed,
-                                           ((0, npixels_pad - self.image.shape[0]),
-                                           (0, npixels_pad - self.image.shape[1])),
-                                           mode='constant')
-                    #
-                    if plot_progress is True:
-                        plt.imshow(im_watershed_pad)
-                        plt.title('Output of the watershed algorithm - padded')
-                        plt.colorbar()
-                        plt.show()
-                    print("Object domain: Input and watershed images were padded to ", im_pad.shape[0], "X", im_pad.shape[1], "pixels.")
-                    self.metadata['Linear number of pixels in the zero-padded real-space image']= npixels_pad
-                    #
-                    # compute the relative shift the segmented region's centroid w.r.t. the centre of the computational domain
-                    # (the tuple's items must be multiplied by -1 to ensure that in AffineTransform the shift occurs in the right direction)
-                    # the moments are rounded to ensure the centroid is not between the pixels
-                    # add 0.1 to round(im_moments ... / im_moments ... ) to round as per mathematical definition
-                    im_moments = measure.moments(im_watershed_pad)
-                    im_centroids_shift = (-(int(im_pad.shape[0] / 2) - int(round(im_moments[1, 0] / im_moments[0, 0] + 0.1))),
-                                   -(int(im_pad.shape[1] / 2)  - int(round(im_moments[0, 1] / im_moments[0, 0] + 0.1))))
-                    #
-                    # find out physical linear pixel size
-                    pixelsize_dr0 = round(1e3 * np.sqrt(linear_object_size**2 / np.count_nonzero(im_watershed_pad)), 0)
-                    self.metadata['Pixel size object domain, m'] = pixelsize_dr0
-                    #
-                    # centre object's distribution
-                    # (with or without the application of the apodization filter)
-                    if apodization is False:
-                        self.image = warp(im_pad,
-                                          AffineTransform(translation=im_centroids_shift),
-                                          mode='wrap',
-                                          preserve_range=True)
-                        print('Object domain: Image centred. Apodization was NOT applied. Linear pixel size is ', pixelsize_dr0, "nm")
-                        self.metadata['Apodization filter applied?'] = 'no'
-                        #
-                        if plot_progress is True:
-                            plt.imshow(self.image)
-                            plt.title('Centred image')
-                            plt.colorbar()
-                            plt.show()
-                    else:
-                        # compute apodization filter
-                        image_apodization_filter = warp(im_watershed_pad,
-                                                        AffineTransform(translation=im_centroids_shift),
-                                                        mode='wrap',
-                                                        preserve_range=True)
-                        image_apodization_filter = gaussian(image_apodization_filter,
-                                                            sigma=3,
-                                                            preserve_range=True,
-                                                            truncate=2.0)
-                        image_apodization_filter = image_apodization_filter / np.max(np.max(image_apodization_filter))
-                        self.image_apodization_filter = image_apodization_filter
-                        #
-                        if plot_progress is True:
-                            plt.imshow(image_apodization_filter)
-                            plt.title('Apodization filter')
-                            plt.colorbar()
-                            plt.show()
-                        #
-                        self.image = image_apodization_filter * warp(im_pad,
-                                                                              AffineTransform(translation=im_centroids_shift),
-                                                                              mode='wrap',
-                                                                              preserve_range=True)
-                        print("Object domain: Image centred. Apodization filter was applied. Linear pixel size is ", pixelsize_dr0, "nm")
-                        self.metadata['Apodization filter applied?'] = 'yes'
-                        #
-                        if plot_progress is True:
-                            plt.imshow(self.image)
-                            plt.title('Centred and apodized image')
-                            plt.colorbar()
-                            plt.show()
-                    self.metadata['Image centred and padded?'] = 'yes'
-                    self.metadata['Linear size of the object, m'] = linear_object_size
-
-                    return im_centroids_shift, pixelsize_dr0
-                    #
-                else:
-                    raise ValueError('Specified number of pixels for zero-padding is too low!')
-
-            else:
-                raise ValueError('Argument(s) missing!')
-        else:
-            raise ValueError('Read the image data first!')
-
     def segment_image_watershed(self, str_element_size = 100, linear_object_size=100e-6, plot_progress = False):
         """
         Segments object-domain image using watershed algorithm (the existence of only a single blob is assumed).
@@ -602,81 +326,82 @@ class RSpaceImage(object):
                 opening = cv2.morphologyEx(self.image_binary.astype(np.float64), cv2.MORPH_OPEN, kernel, iterations=1)
                 if plot_progress is True:
                     plt.imshow(opening)
-                    plt.title('binary image after opening')
+                    plt.title('cleaning up the binary image by morphological opening')
                     plt.colorbar()
                     plt.show()
                 # determine sure foreground area
                 sure_fg = cv2.erode(opening, kernel, iterations=1)
                 if plot_progress is True:
                     plt.imshow(sure_fg)
-                    plt.title('max pixel values show sure_fg')
+                    plt.title('eroding the opened image to find the sure foreground (pixels=1)')
                     plt.colorbar()
                     plt.show()
                 # determine sure background area
                 sure_bg = cv2.dilate(opening, kernel, iterations=1)
                 if plot_progress is True:
                     plt.imshow(sure_bg)
-                    plt.title('min pixel values show sure_bg')
+                    plt.title('eroding the opened image to find the sure background (pixels=0)')
                     plt.colorbar()
                     plt.show()
-                # determine bondary (unknown) region
+                # determine boundary (unknown) region
                 unknown = sure_bg - sure_fg
                 if plot_progress is True:
                     plt.imshow(unknown)
-                    plt.title('unknown')
+                    plt.title('subtract sure GB from sure FG to obtain the unknown region (pixels=1)')
                     plt.colorbar()
                     plt.show()
                 #
                 # label markers
                 _, markers = cv2.connectedComponents(sure_fg.astype(np.uint8))
-                # add one to all markers to ensure background is not 0, but 1
+                # add one to all markers to ensure background is not 0, but 1 (0 is reserved for the unknown region)
                 markers = markers + 1
                 # mark the region of unknown with zero
                 markers[unknown == 1] = 0
                 markers = markers.astype('int32')
                 if plot_progress is True:
                     plt.imshow(markers)
-                    plt.title('markers')
+                    plt.title('markers: 0=unknown, 1=background, 2=foreground ')
                     plt.colorbar()
                     plt.show()
                 #
-                # filter, renormalise and convert input image to 8 bit BGR
+                # filter, renormalise and convert input image to 8 bit BGR (cv2.watershed requires 8-bit 3-channel image as an input)
                 image4watershed = np.copy(self.image)
                 image4watershed = filters.gaussian(image4watershed, sigma = 3)
                 image4watershed = image4watershed/np.max(image4watershed)
                 image4watershed = 255 * image4watershed
                 image4watershed = cv2.cvtColor(image4watershed.astype(np.uint8), cv2.COLOR_GRAY2BGR)
                 if plot_progress is True:
-                    plt.imshow(image4watershed)
-                    plt.title('image converted to 8 bit BGR used in watershed')
+                    plt.imshow(image4watershed, cmap="viridis")
+                    plt.title('input image converted to 8 bit BGR as required by cv2.watershed')
                     plt.colorbar()
                     plt.show()
                 #
                 # apply watershed algorithm
                 image_segmented = cv2.watershed(image4watershed, markers)
+
                 if plot_progress is True:
                     plt.imshow(image_segmented)
-                    plt.title('segmented regions')
+                    plt.title('segmented image')
                     plt.colorbar()
                     plt.show()
                 #
-                # normalise segmented image
+                # normalise segmented image by setting the segmented object distribution to 1 and the rest to 0
                 image_segmented[image_segmented <2]=0
                 image_segmented[image_segmented == 2] = 1
                 if plot_progress is True:
                     plt.imshow(image_segmented)
-                    plt.title('image with segmented background set to 0')
+                    plt.title('binarized segmented image: object=1, background=0')
                     plt.colorbar()
                     plt.show()
                 #
                 # save normalised segmented image
                 self.image_segmented = image_segmented
                 #
-                # apply normalised segmented image as a mask
+                # apply normalised segmented image as a mask for display purposes
                 image = image_segmented * self.image
                 if plot_progress is True:
                     plt.imshow(image)
-                    plt.title('image with segmented background set to 0')
+                    plt.title('binarized segmented image * original image')
                     plt.colorbar()
                     plt.show()
                 #
