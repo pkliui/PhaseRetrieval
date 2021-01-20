@@ -177,7 +177,7 @@ class TestRSpaceImageClass(unittest.TestCase):
         """
         self.rs.image = None
         with self.assertRaises(ValueError):
-            self.rs.centre_image_watershed()
+            self.rs.segment_image_watershed()
 
     def test_segment_image_watershed_pixelsize(self):
         """
