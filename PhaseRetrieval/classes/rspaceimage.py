@@ -31,7 +31,7 @@ from PhaseRetrieval.classes.rspacemetadata import RSpaceMetadata
 
 class RSpaceImage(object):
 
-    def __init__(self, filename=None, delimiter=None, image=None, image_binary=None, image_segmented=None, image_apodization_filter=None):
+    def __init__(self, filename=None, delimiter=None, image=None, image_binary=None, image_segmented=None, image_segmented_apodized=None):
         """
         Initializes the object-domain image class
 
@@ -53,15 +53,15 @@ class RSpaceImage(object):
             If None, an empty class is created.
             Default is None.
         image_binary: ndarray, optional
-            2D array to initialize binary version the image.
+            2D array to initialize binary version the image (image with roughly estimated object's boundaries).
             If None, an empty class is created.
             Default is None.
         image_segmented: ndarray, optional
-            2D array to initialize segmented version the image.
+            2D array to initialize segmented version of the image.
             If None, an empty class is created.
             Default is None.
-        image_apodization_filter: ndarray, optional
-            2D array to initialize the thresholded version of the image (i.e. image apodization filter).
+        image_segmented_apodized: ndarray, optional
+            2D array to initialize the segmented version of the image with apodized boundaries.
             If None, an empty class is created.
             Default is None.
         """
@@ -70,7 +70,7 @@ class RSpaceImage(object):
         self.image = image
         self.image_binary = image_binary
         self.image_segmented = image_segmented
-        self.image_apodization_filter = image_apodization_filter
+        self.image_segmented_apodized = image_segmented_apodized
         #
         self.metadata = RSpaceMetadata()
         self.metadata['Wavelength of light, m'] = None
@@ -567,7 +567,7 @@ class RSpaceImage(object):
 
     def centre_image(self, npixels_pad=2000, apodization=False, plot_progress = False):
         """
-        Centers object-domain image after its segmentation by computing its centre of mass.
+        Centers the object-domain image by computing the centre of mass of its segmented distribution.
         Completes zero-padding of the original image to a specified linear number of pixels
         Applies an apodization filter to smooth boundaries of the object distribution (optional)
 
@@ -647,21 +647,21 @@ class RSpaceImage(object):
                                                             mode='wrap',
                                                             preserve_range=True)
                             # then compute apodization filter
-                            image_apodization_filter = gaussian(image_segmented_centered ,
+                            image_segmented_apodized = gaussian(image_segmented_centered ,
                                                                 sigma=3,
                                                                 preserve_range=True,
                                                                 truncate=2.0)
-                            image_apodization_filter = image_apodization_filter / np.max(np.max(image_apodization_filter))
-                            self.image_apodization_filter = image_apodization_filter
+                            image_segmented_apodized = image_segmented_apodized / np.max(np.max(image_segmented_apodized))
+                            self.image_segmented_apodized = image_segmented_apodized
                             #
                             if plot_progress is True:
-                                plt.imshow(image_apodization_filter)
+                                plt.imshow(image_segmented_apodized)
                                 plt.title('Apodization filter')
                                 plt.colorbar()
                                 plt.show()
                             #
                             # center padded image and apply apodization filter to it
-                            self.image = image_apodization_filter * warp(image_pad,
+                            self.image = image_segmented_apodized * warp(image_pad,
                                                                                   AffineTransform(translation=im_centroids_shift),
                                                                                   mode='wrap',
                                                                                   preserve_range=True)
