@@ -37,7 +37,7 @@ class TestRSpaceImageClass(unittest.TestCase):
         test the input arguments are existing and are all None
         :return:
         """
-        for var in ['filename', 'delimiter', 'image', 'image_apodization_filter']:
+        for var in ['filename', 'delimiter', 'image', 'image_segmented_apodized']:
             self.assertIn(var, self.rs.__dict__)
             self.assertEqual(self.rs.__dict__[var], None)
 
