@@ -340,7 +340,7 @@ class RSpaceImage(object):
                 sure_bg = cv2.dilate(opening, kernel, iterations=1)
                 if plot_progress is True:
                     plt.imshow(sure_bg)
-                    plt.title('eroding the opened image to find the sure background (pixels=0)')
+                    plt.title('dilating the opened image to find the sure background (pixels=0)')
                     plt.colorbar()
                     plt.show()
                 # determine boundary (unknown) region
@@ -406,13 +406,13 @@ class RSpaceImage(object):
                     plt.show()
                 #
                 # find out physical linear pixel size
-                pixelsize_dr0 = round(1e3 * np.sqrt(linear_object_size**2 / np.count_nonzero(image_segmented)), 0)
+                pixelsize_dr0 = np.sqrt(linear_object_size**2 / np.count_nonzero(image_segmented))
                 self.metadata['Pixel size object domain, m'] = pixelsize_dr0
                 #
                 self.metadata['Linear size of the object, m'] = linear_object_size
 
                 return pixelsize_dr0
-                    #
+                #
             else:
                 raise ValueError("Binarize the input image first!")
         else:
@@ -565,26 +565,38 @@ class RSpaceImage(object):
         else:
             raise ValueError('Read the image data first!')
 
-    def centre_image(self, npixels_pad=2000, apodization=False, plot_progress = False):
+    def centre_image(self, npixels_pad=2000, masking = True, apodization=False, plot_progress = False):
         """
-        Centers the object-domain image by computing the centre of mass of its segmented distribution.
-        Completes zero-padding of the original image to a specified linear number of pixels
-        Applies an apodization filter to smooth boundaries of the object distribution (optional)
+        Completes zero-padding of the object-domain image to a specified linear number of pixels.
+        Centers the image by computing the centre of mass of its segmented distribution.
+        Masks the centred image with its centred segmented distribution.
+        Applies an apodization filter to the segmented image to smooth its boundaries (optional)
 
         ---
         Parameters
         ---
         npixels_pad: int, optional
-            Linear number of pixels in the zero-padded object-domain image.
+            Linear number of pixels to have in the zero-padded object-domain image.
             Default is 2000.
+        masking: bool, optional
+            If True, the centred object-domain image is multiplied by the centred segmented image.
+            If False, the object-domain image is only centred.
+            Default is True.
         apodization: bool, optional
-            If True, the boundaries of the object distribution will be smoothed using Gaussian filter
+            If True, the boundaries of thr centred segmented image are smoothed using a Gaussian filter
             with standard deviation = 3 pixels and truncation of the filter's boundaries to 2
-            (fixed at the moment, but may/should be changed in the future)
-            Default is False
+            (fixed at the moment, but may/should be changed in the future).
+            If False, the boundaries of the segmented image are not smoothed.
+            Default is False.
         plot_progress: bool, optional
             Plot images.
             Default is False
+        ---
+        Returns
+        ---
+        im_centroids_shift: tuple of int
+            the number of pixels the centroid is  displaced w.r.t. the centre of the computational domain
+
         """
         if self.image is not None:
             if self.image_segmented is not None:
@@ -615,7 +627,132 @@ class RSpaceImage(object):
                         print("Object domain: Input and segmented images were padded to ", image_pad.shape[0], "X", image_pad.shape[1], "pixels.")
                         self.metadata['Linear number of pixels in the zero-padded real-space image']= npixels_pad
                         #
-                        # compute the relative shift the segmented region's centroid w.r.t. the centre of the computational domain
+                        # compute the segmented image's centroid
+                        im_moments = measure.moments(image_segmented_pad)
+                        #
+                        # compute the shift of the centroid w.r.t. the centre of the computational domain:
+                        # - the tuple's items are multiplied by -1 to ensure the shift is in the right direction;
+                        # - the moments are rounded to ensure the centroid is not between the pixels;
+                        # - add 0.1 to round as per mathematical definition
+                        im_centroids_shift = (-(int(image_segmented_pad.shape[0] / 2) - int(round(im_moments[1, 0] / im_moments[0, 0] + 0.1))),
+                                       -(int(image_segmented_pad.shape[1] / 2)  - int(round(im_moments[0, 1] / im_moments[0, 0] + 0.1))))
+                        #
+                        # centre object's distribution:
+                        # - without application of apodization filter
+                        if apodization is False:
+                            # center padded image
+                            self.image = warp(image_pad,
+                                              AffineTransform(translation=im_centroids_shift),
+                                              mode='wrap',
+                                              preserve_range=True)
+                            print('Object domain: Image centred. Apodization was NOT applied. Linear pixel size is ', self.metadata['Pixel size object domain, m'], "nm")
+                            self.metadata['Apodization filter applied?'] = 'no'
+                            #
+                            if plot_progress is True:
+                                plt.imshow(self.image)
+                                plt.title('Centred image')
+                                plt.colorbar()
+                                plt.show()
+                        # - with application of apodization filter
+                        else:
+                            # first center padded segmented image
+                            image_segmented_centered = warp(image_segmented_pad,
+                                                            AffineTransform(translation=im_centroids_shift),
+                                                            mode='wrap',
+                                                            preserve_range=True)
+                            # then compute apodization filter
+                            image_segmented_apodized = gaussian(image_segmented_centered ,
+                                                                sigma=3,
+                                                                preserve_range=True,
+                                                                truncate=2.0)
+                            image_segmented_apodized = image_segmented_apodized / np.max(np.max(image_segmented_apodized))
+                            self.image_segmented_apodized = image_segmented_apodized
+                            #
+                            if plot_progress is True:
+                                plt.imshow(image_segmented_apodized)
+                                plt.title('Apodization filter')
+                                plt.colorbar()
+                                plt.show()
+                            #
+                            # center padded image and apply apodization filter to it
+                            self.image = image_segmented_apodized * warp(image_pad,
+                                                                                  AffineTransform(translation=im_centroids_shift),
+                                                                                  mode='wrap',
+                                                                                  preserve_range=True)
+                            print("Object domain: Image centred. Apodization filter was applied. Linear pixel size is ", self.metadata['Pixel size object domain, m'], "nm")
+                            self.metadata['Apodization filter applied?'] = 'yes'
+                            #
+                            if plot_progress is True:
+                                plt.imshow(self.image)
+                                plt.title('Centred and apodized image')
+                                plt.colorbar()
+                                plt.show()
+                        self.metadata['Image centred and padded?'] = 'yes'
+
+                        return im_centroids_shift
+                        #
+                    else:
+                        raise ValueError('Specified number of pixels for zero-padding is too low!')
+
+                else:
+                    raise ValueError('Number of pixels to zero-pad to is None!')
+            else:
+                raise ValueError('Segment the image data first!')
+        else:
+            raise ValueError('Read the image data first!')
+
+
+    def centre_image_old(self, npixels_pad=2000, apodization=True, plot_progress = False):
+        """
+        Centers the object-domain image by computing the centre of mass of its segmented distribution.
+        Completes zero-padding of the original image to a specified linear number of pixels
+        Applies an apodization filter to smooth boundaries of the object distribution (optional)
+
+        ---
+        Parameters
+        ---
+        npixels_pad: int, optional
+            Linear number of pixels in the zero-padded object-domain image.
+            Default is 2000.
+        apodization: bool, optional
+            If True, the boundaries of the object distribution will be smoothed using Gaussian filter
+            with standard deviation = 3 pixels and truncation of the filter's boundaries to 2
+            (fixed at the moment, but may or should be changed in the future)
+            Default is True
+        plot_progress: bool, optional
+            Plot images.
+            Default is False
+        """
+        if self.image is not None:
+            if self.image_segmented is not None:
+                if npixels_pad is not None:
+                    if npixels_pad >= self.image.shape[0] or npixels_pad >= self.image.shape[1]:
+                        #
+                        if plot_progress is True:
+                            plt.imshow(self.image)
+                            plt.title('self.image')
+                            plt.colorbar()
+                            plt.show()
+                        #
+                        #now pad original image and watershed-segmented image
+                        image_pad = pad(self.image,
+                                    ((0, npixels_pad - self.image.shape[0]),
+                                    (0, npixels_pad - self.image.shape[1])),
+                                    mode='constant')
+                        image_segmented_pad = pad(self.image_segmented,
+                                               ((0, npixels_pad - self.image.shape[0]),
+                                               (0, npixels_pad - self.image.shape[1])),
+                                               mode='constant')
+                        #
+                        if plot_progress is True:
+                            plt.imshow(image_segmented_pad)
+                            plt.title('Padded segmented image')
+                            plt.colorbar()
+                            plt.show()
+                        print("Object domain: Input and segmented images were padded to ", image_pad.shape[0], "X", image_pad.shape[1], "pixels.")
+                        self.metadata['Linear number of pixels in the zero-padded real-space image']= npixels_pad
+                        #
+                        # compute the relative shift of the segmented region's centroid w.r.t. the centre of the computational domain
                         # (the tuple's items must be multiplied by -1 to ensure that in AffineTransform the shift occurs in the right direction)
                         # the moments are rounded to ensure the centroid is not between the pixels
                         # add 0.1 to round(im_moments ... / im_moments ... ) to round as per mathematical definition
