@@ -203,7 +203,8 @@ class TestRSpaceImageClass(unittest.TestCase):
         #
         # set the structuring element size to 1x1 pxls. This should yield a 4x4 non-zero-valued foreground after the opening (erosion by 1x1 str.element + dilation by 1x1 str.element)
         pixelsize_dr0 = self.rs.segment_image_watershed(linear_object_size=10, str_element_size = 1, plot_progress=False)
-        self.assertEqual(pixelsize_dr0, 2500.0)
+        # pixel size = sqrt(10*10/4x4)= 2,5
+        self.assertEqual(pixelsize_dr0, 2.5)
 
     def test_segment_image_watershed_metadata(self):
         """
