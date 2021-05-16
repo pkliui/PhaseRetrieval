@@ -31,7 +31,8 @@ from PhaseRetrieval.classes.rspacemetadata import RSpaceMetadata
 
 class RSpaceImage(object):
 
-    def __init__(self, filename=None, delimiter=None, image=None, image_binary=None, image_segmented=None, image_segmented_apodized=None):
+    def __init__(self, filename=None, delimiter=None, image=None, image_binary=None,
+                 image_segmented=None, image_segmented_apodized=None, image_centred=None, image_centred_apodized=None):
         """
         Initializes the object-domain image class
 
@@ -64,6 +65,14 @@ class RSpaceImage(object):
             2D array to initialize the segmented version of the image with apodized boundaries.
             If None, an empty class is created.
             Default is None.
+        image_centred: ndarray, optional
+            2D array to initialize centred version of the image.
+            If None, an empty class is created.
+            Default is None.
+        image_centred_apodized: ndarray, optional
+            2D array to initialize the centred version of the segmented image with apodized boundaries.
+            If None, an empty class is created.
+            Default is None.
         """
         self.filename = filename
         self.delimiter = delimiter
@@ -71,6 +80,9 @@ class RSpaceImage(object):
         self.image_binary = image_binary
         self.image_segmented = image_segmented
         self.image_segmented_apodized = image_segmented_apodized
+        self.image_centred = image_centred
+        self.image_centred_apodized = image_centred_apodized
+
         #
         self.metadata = RSpaceMetadata()
         self.metadata['Wavelength of light, m'] = None
@@ -565,7 +577,7 @@ class RSpaceImage(object):
         else:
             raise ValueError('Read the image data first!')
 
-    def centre_image(self, npixels_pad=2000, masking = True, apodization=False, plot_progress = False):
+    def centre_image(self, npixels_pad=2000, apodization=False, std = 3, trunc = 2, plot_progress = False, zoom=1):
         """
         Completes zero-padding of the object-domain image to a specified linear number of pixels.
         Centers the image by computing the centre of mass of its segmented distribution.
@@ -578,19 +590,17 @@ class RSpaceImage(object):
         npixels_pad: int, optional
             Linear number of pixels to have in the zero-padded object-domain image.
             Default is 2000.
-        masking: bool, optional
-            If True, the centred object-domain image is multiplied by the centred segmented image.
-            If False, the object-domain image is only centred.
-            Default is True.
         apodization: bool, optional
-            If True, the boundaries of thr centred segmented image are smoothed using a Gaussian filter
-            with standard deviation = 3 pixels and truncation of the filter's boundaries to 2
-            (fixed at the moment, but may/should be changed in the future).
+            If True, the boundaries of the centred segmented image are smoothed using a Gaussian filter
+            with standard deviation = std pixels and truncation of the filter's boundaries to trunc pixels
             If False, the boundaries of the segmented image are not smoothed.
             Default is False.
         plot_progress: bool, optional
             Plot images.
             Default is False
+        zoom: int, optional
+            Zoom factor to zoom into the plots of centred distributions
+            Default is 1 (no zoom)
         ---
         Returns
         ---
@@ -609,7 +619,7 @@ class RSpaceImage(object):
                             plt.colorbar()
                             plt.show()
                         #
-                        #now pad original image and watershed image
+                        #pad object-domain image and watershed-segmented object-domain image
                         image_pad = pad(self.image,
                                     ((0, npixels_pad - self.image.shape[0]),
                                     (0, npixels_pad - self.image.shape[1])),
@@ -637,20 +647,22 @@ class RSpaceImage(object):
                         im_centroids_shift = (-(int(image_segmented_pad.shape[0] / 2) - int(round(im_moments[1, 0] / im_moments[0, 0] + 0.1))),
                                        -(int(image_segmented_pad.shape[1] / 2)  - int(round(im_moments[0, 1] / im_moments[0, 0] + 0.1))))
                         #
-                        # centre object's distribution:
+                        #
+                        # center padded object-domain image
+                        image_pad_centred = warp(image_pad,
+                                                 AffineTransform(translation=im_centroids_shift),
+                                                 mode='wrap',
+                                                 preserve_range=True)
+                        # center the original object-domain image
                         # - without application of apodization filter
                         if apodization is False:
-                            # center padded image
-                            self.image = warp(image_pad,
-                                              AffineTransform(translation=im_centroids_shift),
-                                              mode='wrap',
-                                              preserve_range=True)
+                            self.image_centred = image_pad_centred
                             print('Object domain: Image centred. Apodization was NOT applied. Linear pixel size is ', self.metadata['Pixel size object domain, m'], "nm")
                             self.metadata['Apodization filter applied?'] = 'no'
                             #
                             if plot_progress is True:
-                                plt.imshow(self.image)
-                                plt.title('Centred image')
+                                plt.imshow(self.image_centred)
+                                plt.title('Centred object-domain image')
                                 plt.colorbar()
                                 plt.show()
                         # - with application of apodization filter
@@ -660,40 +672,50 @@ class RSpaceImage(object):
                                                             AffineTransform(translation=im_centroids_shift),
                                                             mode='wrap',
                                                             preserve_range=True)
-                            # then compute apodization filter
-                            image_segmented_apodized = gaussian(image_segmented_centered ,
-                                                                sigma=3,
+                            # then apodize it - we call the result "apodization filter"
+                            image_segmented_apodized = gaussian(image_segmented_centered,
+                                                                sigma=std,
                                                                 preserve_range=True,
-                                                                truncate=2.0)
-                            image_segmented_apodized = image_segmented_apodized / np.max(np.max(image_segmented_apodized))
-                            self.image_segmented_apodized = image_segmented_apodized
+                                                                truncate=trunc)
+                            self.image_segmented_apodized = image_segmented_apodized / np.max(np.max(image_segmented_apodized))
+                            #
                             #
                             if plot_progress is True:
                                 plt.imshow(image_segmented_apodized)
+                                plt.axis([self.image_centred_apodized.shape[0] // 2 - self.image_centred_apodized.shape[0] // 2 // zoom,
+                                          self.image_centred_apodized.shape[0] // 2 + self.image_centred_apodized.shape[0] // 2 // zoom,
+                                          self.image_centred_apodized.shape[1] // 2 - self.image_centred_apodized.shape[1] // 2 // zoom,
+                                          self.image_centred_apodized.shape[1] // 2 + self.image_centred_apodized.shape[1] // 2 // zoom])
                                 plt.title('Apodization filter')
                                 plt.colorbar()
                                 plt.show()
+
+                                plt.plot(image_segmented_apodized[self.image_centred_apodized.shape[0] // 2,:])
+                                plt.title('Cross-section through the equator of the apodization filter')
+                                plt.show()
+
+                                #
                             #
-                            # center padded image and apply apodization filter to it
-                            self.image = image_segmented_apodized * warp(image_pad,
-                                                                                  AffineTransform(translation=im_centroids_shift),
-                                                                                  mode='wrap',
-                                                                                  preserve_range=True)
+                            # apply apodization filter to it
+                            self.image_centred_apodized = self.image_segmented_apodized * image_pad_centred
                             print("Object domain: Image centred. Apodization filter was applied. Linear pixel size is ", self.metadata['Pixel size object domain, m'], "nm")
                             self.metadata['Apodization filter applied?'] = 'yes'
                             #
                             if plot_progress is True:
-                                plt.imshow(self.image)
+                                plt.imshow(self.image_centred_apodized)
+                                plt.axis([self.image_centred_apodized.shape[0] // 2 - self.image_centred_apodized.shape[0] // 2 // zoom,
+                                          self.image_centred_apodized.shape[0] // 2 + self.image_centred_apodized.shape[0] // 2 // zoom,
+                                          self.image_centred_apodized.shape[1] // 2 - self.image_centred_apodized.shape[1] // 2 // zoom,
+                                          self.image_centred_apodized.shape[1] // 2 + self.image_centred_apodized.shape[1] // 2 // zoom])
                                 plt.title('Centred and apodized image')
                                 plt.colorbar()
                                 plt.show()
                         self.metadata['Image centred and padded?'] = 'yes'
-
+                        #
                         return im_centroids_shift
                         #
                     else:
                         raise ValueError('Specified number of pixels for zero-padding is too low!')
-
                 else:
                     raise ValueError('Number of pixels to zero-pad to is None!')
             else:
