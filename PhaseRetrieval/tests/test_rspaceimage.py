@@ -456,9 +456,12 @@ class TestRSpaceImageClass(unittest.TestCase):
         self.rs.image_segmented = np.copy(self.rs.image)
         #
         # centre image
-        self.rs.centre_image(npixels_pad=20)
-        self.assertEqual(self.rs.image.shape[0], 20)
-        self.assertEqual(self.rs.image.shape[1], 20)
+        self.rs.centre_image(npixels_pad=20, apodization=False)
+        self.assertEqual(self.rs.image_centred.shape[0], 20)
+        self.assertEqual(self.rs.image_centred.shape[1], 20)
+        self.rs.centre_image(npixels_pad=20, apodization=True)
+        self.assertEqual(self.rs.image_centred_apodized.shape[0], 20)
+        self.assertEqual(self.rs.image_centred_apodized.shape[1], 20)
         #
         # initialise input image sampled at n_signal x n_signal non-zero-valued pixels surrounded by a zero-padded region of width n_topad
         # gives 7x7 image
@@ -476,9 +479,12 @@ class TestRSpaceImageClass(unittest.TestCase):
         self.rs.image_segmented = np.copy(self.rs.image)
         #
         # centre image
-        self.rs.centre_image(npixels_pad=20)
-        self.assertEqual(self.rs.image.shape[0], 20)
-        self.assertEqual(self.rs.image.shape[1], 20)
+        self.rs.centre_image(npixels_pad=20, apodization=False)
+        self.assertEqual(self.rs.image_centred.shape[0], 20)
+        self.assertEqual(self.rs.image_centred.shape[1], 20)
+        self.rs.centre_image(npixels_pad=20, apodization=True)
+        self.assertEqual(self.rs.image_centred_apodized.shape[0], 20)
+        self.assertEqual(self.rs.image_centred_apodized.shape[1], 20)
 
     def test_centre_image_metadata(self):
         """
