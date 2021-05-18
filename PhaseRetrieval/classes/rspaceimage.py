@@ -577,7 +577,7 @@ class RSpaceImage(object):
         else:
             raise ValueError('Read the image data first!')
 
-    def centre_image(self, npixels_pad=2000, apodization=False, std = 3, trunc = 2, plot_progress = False, zoom=1):
+    def centre_image(self, npixels_pad=2000, apodization=False, std = 3, trunc = 10, plot_progress = False, zoom=1):
         """
         Completes zero-padding of the object-domain image to a specified linear number of pixels.
         Centers the image by computing the centre of mass of its segmented distribution.
@@ -595,6 +595,12 @@ class RSpaceImage(object):
             with standard deviation = std pixels and truncation of the filter's boundaries to trunc pixels
             If False, the boundaries of the segmented image are not smoothed.
             Default is False.
+         std: int, optional
+            Standard deviation of a gaussian used to apodize the object distribution
+            Default is 3 pixels
+         trunc: int, optional
+            Number of pixels the apodization filter is truncated to
+            Default is 10 pixels
         plot_progress: bool, optional
             Plot images.
             Default is False
