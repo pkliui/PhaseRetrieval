@@ -35,7 +35,7 @@ class TestKSpaceImageClass(unittest.TestCase):
         test the input arguments are existing and are all None
         :return:
         """
-        for var in ['filename', 'delimiter', 'image']:
+        for var in ['filename', 'delimiter', 'image',  'renorm_factor']:
             self.assertIn(var, self.ks.__dict__)
             self.assertEqual(self.ks.__dict__[var], None)
 
