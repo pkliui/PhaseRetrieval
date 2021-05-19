@@ -567,7 +567,7 @@ class RSpaceImage(object):
             # save normalised segmented image
             self.image_segmented = image_segmented
             #
-            # find out physical linear pixel size using segmented image
+            # find out physical linear pixel size using segmented image)
             pixelsize_dr0 = round(1e3 * np.sqrt(linear_object_size ** 2 / np.count_nonzero(image_segmented)), 0)
             self.metadata['Pixel size object domain, m'] = pixelsize_dr0
             self.metadata['Linear size of the object, m'] = linear_object_size
@@ -577,7 +577,7 @@ class RSpaceImage(object):
         else:
             raise ValueError('Read the image data first!')
 
-    def centre_image(self, npixels_pad=2000, apodization=False, std = 3, trunc = 10, plot_progress = False, zoom=1):
+    def centre_image(self, npixels_pad=2000, apodization=False, std = 3, trunc = 9, plot_progress = False, zoom=1):
         """
         Completes zero-padding of the object-domain image to a specified linear number of pixels.
         Centers the image by computing the centre of mass of its segmented distribution.
@@ -688,18 +688,13 @@ class RSpaceImage(object):
                             #
                             if plot_progress is True:
                                 plt.imshow(image_segmented_apodized)
-                                plt.axis([self.image_centred_apodized.shape[0] // 2 - self.image_centred_apodized.shape[0] // 2 // zoom,
-                                          self.image_centred_apodized.shape[0] // 2 + self.image_centred_apodized.shape[0] // 2 // zoom,
-                                          self.image_centred_apodized.shape[1] // 2 - self.image_centred_apodized.shape[1] // 2 // zoom,
-                                          self.image_centred_apodized.shape[1] // 2 + self.image_centred_apodized.shape[1] // 2 // zoom])
+                                plt.axis([self.image_segmented_apodized.shape[0] // 2 - self.image_segmented_apodized.shape[0] // 2 // zoom,
+                                          self.image_segmented_apodized.shape[0] // 2 + self.image_segmented_apodized.shape[0] // 2 // zoom,
+                                          self.image_segmented_apodized.shape[1] // 2 - self.image_segmented_apodized.shape[1] // 2 // zoom,
+                                          self.image_segmented_apodized.shape[1] // 2 + self.image_segmented_apodized.shape[1] // 2 // zoom])
                                 plt.title('Apodization filter')
                                 plt.colorbar()
                                 plt.show()
-
-                                plt.plot(image_segmented_apodized[self.image_centred_apodized.shape[0] // 2,:])
-                                plt.title('Cross-section through the equator of the apodization filter')
-                                plt.show()
-
                                 #
                             #
                             # apply apodization filter to it
@@ -1006,8 +1001,15 @@ class RSpaceImage(object):
         ---
         Returns
         ---
+        pixelsize_dk: float
+            Pixel size in experimental Fourier-domain image as calculated from the input field of view, wavelength and total linear number of pixels
+        pixelsize_dr_pad : float
+            New pixel size in the object-domain image after resampling
+        downsampling: int
+            Downsampling ratio defined as the ratio (pixelsize_dr_pad / pixelsize_dr0) rounded to the nearest integer
         npixels_final : int
-            Final linear number of pixels in the object-domain image
+            Final linear number of pixels in the object-domain image as set by the downsampling ratio and experimental
+            pixel sizes in Fourier and object spaces
         """
         if self.image is not None:
             if self.metadata['Image centred and padded?'] == 'yes':
