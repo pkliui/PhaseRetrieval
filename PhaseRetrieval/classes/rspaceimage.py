@@ -154,7 +154,7 @@ class RSpaceImage(object):
         image_type : str, optional
             What kind of image to plot.
             The input must be one of the following: "raw", "binary", "segmented", "centered"
-            These choices correspond to raw input image self.image, binarized input image self.image_binary,
+            These choices correspond to: raw input image self.image, binarized input image self.image_binary,
             segmented input image self.image_segmented, and centred raw image  self.image_centred
             Default is "raw"
         """
@@ -1060,34 +1060,40 @@ class RSpaceImage(object):
                 npixels_final = int(round(2 * np.pi / (downsampling * pixelsize_dr0 * pixelsize_dk)))
                 #
                 if estimate_only == False:
-                    print('Object domain: Input image shape is ', self.image.shape[0],'X', self.image.shape[1])
                     #
-                    self.image = resize(np.array(self.image), (self.image.shape[0] // downsampling, self.image.shape[1] // downsampling), anti_aliasing=True)
-                    print('Object domain: Image was resampled and its current shape is', self.image.shape)
-                    npixels_to_pad_final0 = int((npixels_final - self.image.shape[0]) / 2)
-                    npixels_to_pad_final1 = int((npixels_final - self.image.shape[1]) / 2)
-                    self.image = pad(np.array(self.image), ((npixels_to_pad_final0, npixels_to_pad_final1), (npixels_to_pad_final0, npixels_to_pad_final1)), mode='constant')
+                    # get the image to resample, i.e. segmented, centered and padded image
+                    image_resampled = self.image_centred
+                    print('Object domain: Input image shape is ', image_resampled.shape[0],'X', image_resampled.shape[1])
+                    #
+                    image_resampled = resize(np.array(image_resampled), (image_resampled.shape[0] // downsampling, image_resampled.shape[1] // downsampling), anti_aliasing=True)
+                    print('Object domain: Image was resampled and its current shape is', image_resampled.shape)
+                    npixels_to_pad_final0 = int((npixels_final - image_resampled.shape[0]) / 2)
+                    npixels_to_pad_final1 = int((npixels_final - image_resampled.shape[1]) / 2)
+                    image_resampled = pad(np.array(image_resampled), ((npixels_to_pad_final0, npixels_to_pad_final1), (npixels_to_pad_final0, npixels_to_pad_final1)), mode='constant')
                     #
                     #check if the final dimensions are of equal length
-                    if self.image.shape[0] == self.image.shape[1]:
+                    if image_resampled.shape[0] == image_resampled.shape[1]:
                         #
                         #set the final linear number of pixels by the actual image size
-                        npixels_final = self.image.shape[0]
+                        npixels_final = image_resampled.shape[0]
                         print('Object domain: Image was resampled with the downsampling ratio =', downsampling,
-                              'and zero-padded to npixels_final X npixels_final=', self.image.shape[0], 'X', self.image.shape[1], 'pixels')
+                              'and zero-padded to npixels_final X npixels_final=', image_resampled.shape[0], 'X', image_resampled.shape[1], 'pixels')
                     #
                     #if the final dimensions are not of the equal length, fix them by deleting the corresponding last column
                     else:
-                        if self.image.shape[0] > self.image.shape[1]:
-                            self.image = self.image[:-1,:]
-                        elif self.image.shape[0] < self.image.shape[1]:
-                            self.image = self.image[:,:-1]
+                        if image_resampled.shape[0] > image_resampled.shape[1]:
+                            image_resampled = image_resampled[:-1,:]
+                        elif image_resampled.shape[0] < image_resampled.shape[1]:
+                            image_resampled = image_resampled[:,:-1]
                         #
                         # set the final linear number of pixels by the actual image size
-                        npixels_final = self.image.shape[0]
+                        npixels_final = image_resampled.shape[0]
                         print('Object domain: Image was resampled with the downsampling ratio =', downsampling,
-                              'and zero-padded to npixels_final X npixels_final=', self.image.shape[0], 'X',
-                              self.image.shape[1], 'pixels')
+                              'and zero-padded to npixels_final X npixels_final=', image_resampled.shape[0], 'X',
+                              image_resampled.shape[1], 'pixels')
+                    #
+                    # save the resampled image as self.image_centred:
+                    self.image_centred = image_resampled
                 #
                 elif estimate_only == True:
                     print('Object domain: Downsampling ratio =', downsampling)
