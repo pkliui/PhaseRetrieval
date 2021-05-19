@@ -33,7 +33,7 @@ Currently there are the following sub-packages available:
    
    * ```tests```  : unit tests
    
-For a detailed user guide see online documentation: https://pkliui.github.io/PhaseRetrieval/
+For a detailed user guide see [online documentation](https://github.com/pkliui/PhaseRetrieval/blob/master/docs/PhaseRetrieval.md)
 
 
 ```python
