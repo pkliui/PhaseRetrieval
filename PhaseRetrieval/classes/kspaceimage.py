@@ -135,7 +135,7 @@ class KSpaceImage(object):
             else:
                 plt.imshow(self.image)
                 plt.title("Fourier-domain image")
-            plt.axis([self.image.shape[0] // 2 - self.image.shape[0] // 2 // zoom,
+                plt.axis([self.image.shape[0] // 2 - self.image.shape[0] // 2 // zoom,
                       self.image.shape[0] // 2 + self.image.shape[0] // 2 // zoom,
                       self.image.shape[1] // 2 - self.image.shape[1] // 2 // zoom,
                       self.image.shape[1] // 2 + self.image.shape[1] // 2 // zoom])
