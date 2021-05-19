@@ -141,7 +141,7 @@ class RSpaceImage(object):
         else:
             raise ValueError('Invalid path! File does not exist!')
 
-    def plot_image(self, zoom = 1):
+    def plot_image(self, zoom = 1, image_type="raw"):
         """
         Plots the image
 
@@ -151,19 +151,55 @@ class RSpaceImage(object):
         zoom: int, optional
             Zoom factor to zoom into the plot
             Default is 1 (no zoom)
+        image_type : str, optional
+            What kind of image to plot.
+            The input must be one of the following: "raw", "binary", "segmented", "centered"
+            These choices correspond to raw input image self.image, binarized input image self.image_binary,
+            segmented input image self.image_segmented, and centred raw image  self.image_centred
+            Default is "raw"
         """
-        if self.image is not None:
-            # plot the image from file
-            plt.imshow(self.image)
-            plt.axis([self.image.shape[0] // 2 - self.image.shape[0] // 2 // zoom,
-                      self.image.shape[0] // 2 + self.image.shape[0] // 2 // zoom,
-                      self.image.shape[1] // 2 - self.image.shape[1] // 2 // zoom,
-                      self.image.shape[1] // 2 + self.image.shape[1] // 2 // zoom])
-            plt.gca().invert_yaxis()
-            plt.colorbar()
-            plt.title("Object-domain image")
+        # select what  image to plot
+        if image_type == "raw":
+            if self.image is not None:
+                image2plot = self.image
+                s0 = image2plot.shape[0]
+                s1 = image2plot.shape[1]
+            else:
+                raise ValueError('Read the image data first')
+        elif image_type ==  "binary":
+            if self.image_binary is not None:
+                image2plot = self.image_binary
+                s0 = image2plot.shape[0]
+                s1 = image2plot.shape[1]
+            else:
+                raise ValueError('Binarize the image data first by calling subtract_background')
+        elif image_type == "segmented":
+            if self.image_segmented is not None:
+                image2plot = self.image_segmented
+                s0 = image2plot.shape[0]
+                s1 = image2plot.shape[1]
+            else:
+                raise ValueError('Segment the image data first by calling segment_image_watershed or similar')
+        elif image_type == "centred":
+            if self.image_centred is not None:
+                image2plot = self.image_centred
+                s0 = image2plot.shape[0]
+                s1 = image2plot.shape[1]
+            else:
+                raise ValueError('Center the image data first by calling centre_image')
+        #
+        # in case some other input is given
         else:
-            raise ValueError('Read the image data first!')
+            raise ValueError('Wrong image type. It must be one of "raw", "binary", "segmented", "centered"')
+        #
+        # plot
+        plt.imshow(image2plot)
+        plt.axis([s0 // 2 - s0 // 2 // zoom,
+                  s0 // 2 + s0 // 2 // zoom,
+                  s1 // 2 - s1 // 2 // zoom,
+                  s1 // 2 + s1 // 2 // zoom])
+        plt.gca().invert_yaxis()
+        plt.colorbar()
 
     def rotate_image(self, times_rot=1, axes=(0, 1), estimate_only = True, plot_progress = False):
         """
@@ -629,10 +665,7 @@ class RSpaceImage(object):
                             # get shapes to use with zoom
                             s0 = image_segmented_pad.shape[0]
                             s1 = image_segmented_pad.shape[1]
-                            plt.axis([s0//2 - s0//2//zoom,
-                                      s0//2 + s0//2//zoom,
-                                      s1//2 - s1//2//zoom,
-                                      s1//2 + s1//2//zoom])
+                            #
                             plt.title('Padded segmented image')
                             plt.colorbar()
                             plt.show()
