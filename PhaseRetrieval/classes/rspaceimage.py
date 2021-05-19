@@ -32,7 +32,7 @@ from PhaseRetrieval.classes.rspacemetadata import RSpaceMetadata
 class RSpaceImage(object):
 
     def __init__(self, filename=None, delimiter=None, image=None, image_binary=None,
-                 image_segmented=None, image_segmented_apodized=None, image_centred=None, image_centred_apodized=None):
+                 image_segmented=None, image_centred=None):
         """
         Initializes the object-domain image class
 
@@ -61,16 +61,8 @@ class RSpaceImage(object):
             2D array to initialize segmented version of the image.
             If None, an empty class is created.
             Default is None.
-        image_segmented_apodized: ndarray, optional
-            2D array to initialize the segmented version of the image with apodized boundaries.
-            If None, an empty class is created.
-            Default is None.
         image_centred: ndarray, optional
             2D array to initialize centred version of the image.
-            If None, an empty class is created.
-            Default is None.
-        image_centred_apodized: ndarray, optional
-            2D array to initialize the centred version of the segmented image with apodized boundaries.
             If None, an empty class is created.
             Default is None.
         """
@@ -79,10 +71,7 @@ class RSpaceImage(object):
         self.image = image
         self.image_binary = image_binary
         self.image_segmented = image_segmented
-        self.image_segmented_apodized = image_segmented_apodized
         self.image_centred = image_centred
-        self.image_centred_apodized = image_centred_apodized
-
         #
         self.metadata = RSpaceMetadata()
         self.metadata['Wavelength of light, m'] = None
@@ -637,6 +626,13 @@ class RSpaceImage(object):
                         #
                         if plot_progress is True:
                             plt.imshow(image_segmented_pad)
+                            # get shapes to use with zoom
+                            s0 = image_segmented_pad.shape[0]
+                            s1 = image_segmented_pad.shape[1]
+                            plt.axis([s0//2 - s0//2//zoom,
+                                      s0//2 + s0//2//zoom,
+                                      s1//2 - s1//2//zoom,
+                                      s1//2 + s1//2//zoom])
                             plt.title('Padded segmented image')
                             plt.colorbar()
                             plt.show()
@@ -665,12 +661,7 @@ class RSpaceImage(object):
                             self.image_centred = image_pad_centred
                             print('Object domain: Image centred. Apodization was NOT applied. Linear pixel size is ', self.metadata['Pixel size object domain, m'], "nm")
                             self.metadata['Apodization filter applied?'] = 'no'
-                            #
-                            if plot_progress is True:
-                                plt.imshow(self.image_centred)
-                                plt.title('Centred object-domain image')
-                                plt.colorbar()
-                                plt.show()
+                        #
                         # - with application of apodization filter
                         else:
                             # first center padded segmented image
@@ -683,34 +674,35 @@ class RSpaceImage(object):
                                                                 sigma=std,
                                                                 preserve_range=True,
                                                                 truncate=trunc)
-                            self.image_segmented_apodized = image_segmented_apodized / np.max(np.max(image_segmented_apodized))
+                            image_segmented_apodized = image_segmented_apodized / np.max(np.max(image_segmented_apodized))
                             #
                             #
                             if plot_progress is True:
                                 plt.imshow(image_segmented_apodized)
-                                plt.axis([self.image_segmented_apodized.shape[0] // 2 - self.image_segmented_apodized.shape[0] // 2 // zoom,
-                                          self.image_segmented_apodized.shape[0] // 2 + self.image_segmented_apodized.shape[0] // 2 // zoom,
-                                          self.image_segmented_apodized.shape[1] // 2 - self.image_segmented_apodized.shape[1] // 2 // zoom,
-                                          self.image_segmented_apodized.shape[1] // 2 + self.image_segmented_apodized.shape[1] // 2 // zoom])
+                                plt.axis([s0 // 2 - s0 // 2 // zoom,
+                                          s0 // 2 + s0 // 2 // zoom,
+                                          s1 // 2 - s1 // 2 // zoom,
+                                          s1 // 2 + s1 // 2 // zoom])
                                 plt.title('Apodization filter')
                                 plt.colorbar()
                                 plt.show()
                                 #
                             #
                             # apply apodization filter to it
-                            self.image_centred_apodized = self.image_segmented_apodized * image_pad_centred
+                            self.image_centred = image_segmented_apodized * image_pad_centred
                             print("Object domain: Image centred. Apodization filter was applied. Linear pixel size is ", self.metadata['Pixel size object domain, m'], "nm")
                             self.metadata['Apodization filter applied?'] = 'yes'
-                            #
-                            if plot_progress is True:
-                                plt.imshow(self.image_centred_apodized)
-                                plt.axis([self.image_centred_apodized.shape[0] // 2 - self.image_centred_apodized.shape[0] // 2 // zoom,
-                                          self.image_centred_apodized.shape[0] // 2 + self.image_centred_apodized.shape[0] // 2 // zoom,
-                                          self.image_centred_apodized.shape[1] // 2 - self.image_centred_apodized.shape[1] // 2 // zoom,
-                                          self.image_centred_apodized.shape[1] // 2 + self.image_centred_apodized.shape[1] // 2 // zoom])
-                                plt.title('Centred and apodized image')
-                                plt.colorbar()
-                                plt.show()
+                        #
+                        #
+                        if plot_progress is True:
+                            plt.imshow(self.image_centred)
+                            plt.axis([s0//2 - s0//2//zoom,
+                                      s0//2 + s0//2//zoom,
+                                      s1//2 - s1//2//zoom,
+                                      s1//2 + s1//2//zoom])
+                            plt.title('Centred object-domain image')
+                            plt.colorbar()
+                            plt.show()
                         self.metadata['Image centred and padded?'] = 'yes'
                         #
                         return im_centroids_shift
