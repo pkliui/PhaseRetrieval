@@ -37,7 +37,8 @@ class TestRSpaceImageClass(unittest.TestCase):
         test the input arguments are existing and are all None
         :return:
         """
-        for var in ['filename', 'delimiter', 'image', 'image_segmented_apodized']:
+        for var in ['filename', 'delimiter', 'image', 'image_binary',
+                 'image_segmented', 'image_centred']:
             self.assertIn(var, self.rs.__dict__)
             self.assertEqual(self.rs.__dict__[var], None)
 
@@ -460,8 +461,8 @@ class TestRSpaceImageClass(unittest.TestCase):
         self.assertEqual(self.rs.image_centred.shape[0], 20)
         self.assertEqual(self.rs.image_centred.shape[1], 20)
         self.rs.centre_image(npixels_pad=20, apodization=True)
-        self.assertEqual(self.rs.image_centred_apodized.shape[0], 20)
-        self.assertEqual(self.rs.image_centred_apodized.shape[1], 20)
+        self.assertEqual(self.rs.image_centred.shape[0], 20)
+        self.assertEqual(self.rs.image_centred.shape[1], 20)
         #
         # initialise input image sampled at n_signal x n_signal non-zero-valued pixels surrounded by a zero-padded region of width n_topad
         # gives 7x7 image
@@ -483,8 +484,8 @@ class TestRSpaceImageClass(unittest.TestCase):
         self.assertEqual(self.rs.image_centred.shape[0], 20)
         self.assertEqual(self.rs.image_centred.shape[1], 20)
         self.rs.centre_image(npixels_pad=20, apodization=True)
-        self.assertEqual(self.rs.image_centred_apodized.shape[0], 20)
-        self.assertEqual(self.rs.image_centred_apodized.shape[1], 20)
+        self.assertEqual(self.rs.image_centred.shape[0], 20)
+        self.assertEqual(self.rs.image_centred.shape[1], 20)
 
     def test_centre_image_metadata(self):
         """
