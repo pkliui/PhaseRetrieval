@@ -1,13 +1,16 @@
 # PhaseRetrieval <a class="anchor" id="phaseretrieval"></a>
 
-Author: Dr. Pavel Kliuiev
+Author: Pavel Kliuiev
 
-PhaseRetrieval is a Python-based framework for solution of the phase problem widely encountered in optics. The framework incorporates the full workflow for phase retrieval: image pre-processing, reconstruction of images by phase retrieval algorithms and post-processing of reconstructed images (such as image registration).
+* PhaseRetrieval is a Python-based framework for solution of the phase problem widely encountered in optics. The framework incorporates the full workflow for phase retrieval: image pre-processing, reconstruction of images by phase retrieval algorithms and post-processing of reconstructed images (such as image registration).
+
+
+* 
 
 <img src="framework_scheme.png" alt="Drawing" style="width: 600px;"/>
 
 
-The phase retrieval problem is a mathematical problem of recovering an unknown object distribution (an unknown function) from the known modulus of its Fourier transform. Phase retrieval algorithms ([Gerchberg-Saxton-1972](#Gechrberg-Saxton-1972)) make use of available information (such as real- or complex-valuedness of the object or its low-resolution optical image). The problem is widely encountered in imaging and signal processing and its applications range from adaptive optics for large space telescopes and 3D microscopic imaging of cells to imaging through turbulent atmosphere and visualisation of the valence orbitals of organic molecules. 
+* The phase retrieval problem is a mathematical problem of recovering an unknown object distribution (an unknown function) from the known modulus of its Fourier transform. Phase retrieval algorithms ([Gerchberg-Saxton-1972](#Gechrberg-Saxton-1972)) make use of available information (such as real- or complex-valuedness of the object or its low-resolution optical image). The problem is widely encountered in imaging and signal processing and its applications range from adaptive optics for large space telescopes and 3D microscopic imaging of cells to imaging through turbulent atmosphere and visualisation of the valence orbitals of organic molecules. 
 
 ## Table of Contents:
 
@@ -80,6 +83,7 @@ import numpy as np
 datapath = '/Users/Pavel/Documents/repos/PhaseRetrieval/docs/data'
 sourcepath = '/Users/Pavel/Documents/repos/PhaseRetrieval/'
 
+
 sys.path.insert(0,sourcepath)
 sys.path.insert(0,datapath)
 
@@ -89,10 +93,6 @@ sys.path.insert(0,datapath)
 %load_ext autoreload
 %autoreload 2
 ```
-
-    The autoreload extension is already loaded. To reload it, use:
-      %reload_ext autoreload
-
 
 * The next cell (hidden) enables writing latex-style formulas in markdown.
 
@@ -145,51 +145,8 @@ Here and in the following,
 
 ```python
 from PhaseRetrieval.classes.rspaceimage import RSpaceImage
-print(RSpaceImage.__init__.__doc__)
+#print(RSpaceImage.__init__.__doc__)
 ```
-
-    
-            Initializes the object-domain image class
-    
-            ---
-            Parameters
-            ---
-            filename: str, optional
-                Path used to load the image.
-                If None, an empty class is created.
-                If `image` argument is provided, the image will be initialized from the `image` argument.
-                Default is None.
-            delimiter: str, optional
-                Delimiter used in the csv file
-                Delimiter needs to be specified if the data are to be loaded from a csv file.
-                If None, then it is assumed that the data are to be loaded from a tif file.
-                Default is None.
-            image : ndarray, optional
-                2D array to initialize the image.
-                If None, an empty class is created.
-                Default is None.
-            image_binary: ndarray, optional
-                2D array to initialize binary version the image (image with roughly estimated object's boundaries).
-                If None, an empty class is created.
-                Default is None.
-            image_segmented: ndarray, optional
-                2D array to initialize segmented version of the image.
-                If None, an empty class is created.
-                Default is None.
-            image_segmented_apodized: ndarray, optional
-                2D array to initialize the segmented version of the image with apodized boundaries.
-                If None, an empty class is created.
-                Default is None.
-            image_centred: ndarray, optional
-                2D array to initialize centred version of the image.
-                If None, an empty class is created.
-                Default is None.
-            image_centred_apodized: ndarray, optional
-                2D array to initialize the centred version of the segmented image with apodized boundaries.
-                If None, an empty class is created.
-                Default is None.
-            
-
 
 ### Read data <a class="anchor" id="read-data"></a>
 
@@ -363,7 +320,7 @@ _ = rs.subtract_background(
                        plot_progress = True)
 ```
 
-    /Users/Pavel/Documents/repos/PhaseRetrieval/PhaseRetrieval/classes/rspaceimage.py:901: RuntimeWarning: divide by zero encountered in log
+    /Users/Pavel/Documents/repos/PhaseRetrieval/PhaseRetrieval/classes/rspaceimage.py:926: RuntimeWarning: divide by zero encountered in log
       plt.imshow(np.log(im_bgfree))
 
 
@@ -419,7 +376,7 @@ _ = rs.subtract_background(counts=COUNTS,
 * Once the objects are marked, they can be grown using morphological watershed transformation.
 
 <div style="align: left; text-align:center;">
-    <img src = "watershed.png" style="width:350px"/>
+    <img src = "watershed.png" style="width:150px"/>
     <div class="caption"> Regional minima, catchment basins and divide lines (From [[Meyer-Beucher-1990](#Meyer-Beucher-1990)].</div>
 </div>
 
@@ -437,13 +394,13 @@ _ = rs.subtract_background(counts=COUNTS,
 
 
 ```python
-DR0 = rs.segment_image_watershed(str_element_size = 20, 
-                           linear_object_size=100e-6,  
-                           plot_progress = True)
+rs.segment_image_kmeans(n_clusters=2, init="k-means++",  n_init = 10, max_iter=300, tol = 1e-4,
+                             verbose=0, random_state=None, copy_x=True, str_element_size = 10,  
+                        linear_object_size=100e-6, plot_progress = True)
 ```
 
-
-![png](PhaseRetrieval_files/PhaseRetrieval_45_0.png)
+    labels  [0 1]
+    centeres  [0.10248982 0.40415795]
 
 
 
@@ -451,39 +408,54 @@ DR0 = rs.segment_image_watershed(str_element_size = 20,
 
 
 
-![png](PhaseRetrieval_files/PhaseRetrieval_45_2.png)
+```python
+dr0= rs.segment_image_watershed(str_element_size = 20, 
+                           linear_object_size=100e-6,  
+                           plot_progress = True)
+```
+
+
+![png](PhaseRetrieval_files/PhaseRetrieval_46_0.png)
 
 
 
-![png](PhaseRetrieval_files/PhaseRetrieval_45_3.png)
+![png](PhaseRetrieval_files/PhaseRetrieval_46_1.png)
 
 
 
-![png](PhaseRetrieval_files/PhaseRetrieval_45_4.png)
+![png](PhaseRetrieval_files/PhaseRetrieval_46_2.png)
 
 
 
-![png](PhaseRetrieval_files/PhaseRetrieval_45_5.png)
+![png](PhaseRetrieval_files/PhaseRetrieval_46_3.png)
 
 
 
-![png](PhaseRetrieval_files/PhaseRetrieval_45_6.png)
+![png](PhaseRetrieval_files/PhaseRetrieval_46_4.png)
 
 
 
-![png](PhaseRetrieval_files/PhaseRetrieval_45_7.png)
+![png](PhaseRetrieval_files/PhaseRetrieval_46_5.png)
 
 
 
-![png](PhaseRetrieval_files/PhaseRetrieval_45_8.png)
+![png](PhaseRetrieval_files/PhaseRetrieval_46_6.png)
 
 
 
-![png](PhaseRetrieval_files/PhaseRetrieval_45_9.png)
+![png](PhaseRetrieval_files/PhaseRetrieval_46_7.png)
 
 
 
-![png](PhaseRetrieval_files/PhaseRetrieval_45_10.png)
+![png](PhaseRetrieval_files/PhaseRetrieval_46_8.png)
+
+
+
+![png](PhaseRetrieval_files/PhaseRetrieval_46_9.png)
+
+
+
+![png](PhaseRetrieval_files/PhaseRetrieval_46_10.png)
 
 
 ##### Implementation details
@@ -540,11 +512,6 @@ DR0 = rs.segment_image_watershed(str_element_size = 20,
 
 
 ```python
-
-```
-
-
-```python
 _ = rs.subtract_background(counts=COUNTS, 
                        noise_mean = False,
                        estimate_only=False, 
@@ -552,7 +519,7 @@ _ = rs.subtract_background(counts=COUNTS,
                        plot_progress = True)
 ```
 
-    /Users/Pavel/Documents/repos/PhaseRetrieval/PhaseRetrieval/classes/rspaceimage.py:941: RuntimeWarning: divide by zero encountered in log
+    /Users/Pavel/Documents/repos/PhaseRetrieval/PhaseRetrieval/classes/rspaceimage.py:966: RuntimeWarning: divide by zero encountered in log
       plt.imshow(np.log(self.image))
 
 
@@ -583,46 +550,8 @@ _ = rs.subtract_background(counts=COUNTS,
 
 
 ```python
-print(rs.centre_image.__doc__)
+#print(rs.centre_image.__doc__)
 ```
-
-    
-            Completes zero-padding of the object-domain image to a specified linear number of pixels.
-            Centers the image by computing the centre of mass of its segmented distribution.
-            Masks the centred image with its centred segmented distribution.
-            Applies an apodization filter to the segmented image to smooth its boundaries (optional)
-    
-            ---
-            Parameters
-            ---
-            npixels_pad: int, optional
-                Linear number of pixels to have in the zero-padded object-domain image.
-                Default is 2000.
-            apodization: bool, optional
-                If True, the boundaries of the centred segmented image are smoothed using a Gaussian filter
-                with standard deviation = std pixels and truncation of the filter's boundaries to trunc pixels
-                If False, the boundaries of the segmented image are not smoothed.
-                Default is False.
-             std: int, optional
-                Standard deviation of a gaussian used to apodize the object distribution
-                Default is 3 pixels
-             trunc: int, optional
-                Number of pixels the apodization filter is truncated to
-                Default is 10 pixels
-            plot_progress: bool, optional
-                Plot images.
-                Default is False
-            zoom: int, optional
-                Zoom factor to zoom into the plots of centred distributions
-                Default is 1 (no zoom)
-            ---
-            Returns
-            ---
-            im_centroids_shift: tuple of int
-                the number of pixels the centroid is  displaced w.r.t. the centre of the computational domain
-    
-            
-
 
 
 ```python
@@ -649,7 +578,7 @@ _ = rs.centre_image(npixels_pad = 2000,
 ![png](PhaseRetrieval_files/PhaseRetrieval_54_3.png)
 
 
-    Object domain: Image centred. Apodization filter was applied. Linear pixel size is  3.5165952883213734e-07 nm
+    Object domain: Image centred. Apodization filter was applied. Linear pixel size is  3.5163561299684386e-07 nm
 
 
 
@@ -695,43 +624,8 @@ where $N$ is the linear pixel number. Hence, equation (1) must be fulfilled for 
 
 
 ```python
-print(rs.resample_image.__doc__)
+#print(rs.resample_image.__doc__)
 ```
-
-    
-            Resamples object-space image to equalise its pixel size to the one set by
-            digital Fourier transform and the pixel size in the experimental Fourier-space image
-    
-            ---
-            Parameters
-            ---
-            fieldofview: int, optional
-                One half of field of view in Fourier-space, in degrees
-                Default is ±17°, i.e. fieldofview = 17
-            npixels_kspace: int, optional
-                One half of linear number of non-zeros-valued pixels in experimental Fourier-space image to be used together with the real-space image
-                (= corresponds to the linear number of pixels within the 1/2 of field of view)
-                Default is 500
-            pixelsize_dr0: int, optional
-                Pixel size in experimental object-domain image, in m.
-                If it is None, the value will be read from metadata (saved to metadata after centering and segmentation of the image).
-                If the value in metadata is None, there will be an error message.
-                Alternatively, one can set the pixel size manually.
-                Default is None.
-            lambd: float, optional
-                Wavelength of light, in m
-                Default is 880e-9
-            estimate_only: bool, optional
-                False will irreversibly resample the input image.
-                True will only estimate the downsampling ratio.
-                Default is True.
-            ---
-            Returns
-            ---
-            npixels_final : int
-                Final linear number of pixels in the object-domain image
-            
-
 
 
 ```python
@@ -743,9 +637,9 @@ _ = rs.resample_image(fieldofview = 17,
 ```
 
     pixelssize_dk =  5750.768843441485
-    Object domain: Input image shape is  1552 X 1552
-    Object domain: Image was resampled and its current shape is (776, 776)
-    Object domain: Image was resampled with the downsampling ratio = 2.0 and zero-padded to npixels_final X npixels_final= 1552 X 1552 pixels
+    Object domain: Input image shape is  2000 X 2000
+    Object domain: Image was resampled and its current shape is (1000, 1000)
+    Object domain: Image was resampled with the downsampling ratio = 2.0 and zero-padded to npixels_final X npixels_final= 1554 X 1554 pixels
 
 
 
@@ -773,35 +667,8 @@ In the shown example, to 1552x1552 pixels
 
 ```python
 from PhaseRetrieval.classes.kspaceimage import KSpaceImage
-print(KSpaceImage.__init__.__doc__)
+#print(KSpaceImage.__init__.__doc__)
 ```
-
-    
-            Initializes Fourier-domain image class
-    
-            ---
-            Parameters
-            ---
-            filename: str, optional
-                Path used to load the image.
-                If None, an empty class is created.
-                If `image` argument is provided, the image will be initialized from the `image` argument.
-                Default is None.
-            delimiter: str, optional
-                Delimiter used in the csv file
-                Delimiter needs to be specified if the data are to be loaded from a csv file.
-                If None, then it is assumed that the data are to be loaded from a tif file.
-                Default is None.
-            image : ndarray, optional
-                2D array to initialize the image.
-                If None, an empty class is created.
-                Default is None.
-            renorm_factor : float
-                Renormalisation factor to fulfill Parseval's theorem
-                If None, an empty class is created.
-                Default is None.
-            
-
 
 ### Read data <a class="anchor" id="read-data"></a>
 
@@ -879,55 +746,8 @@ ks.flip_image(zoom=3,
 
 
 ```python
-print(ks.centre_image.__doc__)
+#print(ks.centre_image.__doc__)
 ```
-
-    
-            Centers the Fourier-domain image whose centre is located at one of its local maxima
-            Completes zero-padding of the original image to a specified linear number of pixels
-    
-            ---
-            Parameters
-            ---
-            roi: tuple, optional
-                Region of interest (ROI) used to search for local maxima.
-                Default is (0,10,0,10).
-            centre: tuple, optional
-                Centre of the image.
-                Default is (1,1), which must be changed by user once the centre of the image (one of the local maxima) is found.
-            gaussian_filter : bool, optional
-                Apply Gaussian filter to filter noise
-                Default is False
-            sigma : float, optional
-                Standard deviation of a Gaussian filter
-                Defailt is 1.0
-            min_distance, int, optional
-                Minimal distance between the local maxima
-                Must be tuned by user to make the search most effective.
-                Default is 10.
-            threshold_abs: float, optional
-                Minimum intensity of peaks.
-                Default is 0.
-            num_peaks: int, optional
-                Maximum number of peaks.
-                When the number of peaks exceeds num_peaks, return num_peaks peaks based on highest peak intensity.
-                Default is 1.
-            npixels_pad: int, optional
-                Linear number of pixels in the zero-padded Fourier-domain image.
-                Need be set to the one in the zero-padded object-domain image after it was resampled.
-                Default is 2000.
-            zoom: int, optional
-                Zoom factor to zoom into the plot
-                Default is 1 (no zoom)
-            estimate_only: bool, optional
-                False will irreversibly centre the image using local_max_coordinates specified in 'centre' argument
-                True will only find the local_max_coordinates of local maxima
-                Default is True.
-            plot_progress: bool, optional
-                Plot centred image for estimate_only = False.
-                Default is False
-            
-
 
 * The method centres Fourier image by finding local maximal within a specified region of interest (ROI). This methods suits well for centering purposes because Fourier images have multiple blobs that can be easily located. It is also assumed that one of these blobs is located exactly in the middle of the computational domain. 
 
@@ -1370,54 +1190,6 @@ preprocessing_script(datapath = datapath,
                        suppress_print = False)
 ```
 
-    Processing images... Processing with linear number of pixels =  2000 ,Fourier-domain noise =  1900 ,Object-domain noise =  2500
-    Object domain: Input image was read
-    Object-domain: Input image was rotated
-    Object-domain: Image was flipped
-    Fourier domain: Input image was read
-    Fourier domain: Input image was rotated
-    Fourier domain: Input image was flipped
-    Object domain: Background of 2500 counts was subtracted.
-    Object domain: Input and watershed images were padded to  2000 X 2000 pixels.
-    Object domain: Image centred. Apodization filter was applied. Linear pixel size is  0.0 nm
-    Object domain: Input image shape is  2000 X 2000
-    Object domain: Image was resampled and its current shape is (1000, 1000)
-    Object domain: Image was resampled with the downsampling ratio = 2.0 and zero-padded to npixels_final X npixels_final= 2212 X 2212 pixels
-    Fourier domain: Input image was padded to  2212 X 2212 pixels and centred.
-    Fourier domain: Background of 1900 counts has been subtracted.
-    Fourier domain: Energy =  562747856181103.0
-    Energy in object's domain * total number of pixels:  562747856181103.2
-    Fourier domain: Image was renormalised. Parseval's theorem is fulfilled.
-    Object domain: Image was saved in tif file under  /Users/Pavel/Documents/repos/PhaseRetrieval/docs/data/Ntot2000rsnoise2500ksnoise1900_rs35_amplitude.tif
-    Object domain: Metadata was saved in csv file under  /Users/Pavel/Documents/repos/PhaseRetrieval/docs/data/Ntot2000rsnoise2500ksnoise1900_rs35_amplitude.csv
-    Fourier domain: Image was saved in tif file under  /Users/Pavel/Documents/repos/PhaseRetrieval/docs/data/Ntot2000rsnoise2500ksnoise1900_ks35_amplitude.tif
-    Fourier domain: Metadata was saved in csv file under  /Users/Pavel/Documents/repos/PhaseRetrieval/docs/data/Ntot2000rsnoise2500ksnoise1900_ks35_amplitude.csv
-    Image processing completed.
-    Processing images... Processing with linear number of pixels =  2000 ,Fourier-domain noise =  2000 ,Object-domain noise =  2500
-    Object domain: Input image was read
-    Object-domain: Input image was rotated
-    Object-domain: Image was flipped
-    Fourier domain: Input image was read
-    Fourier domain: Input image was rotated
-    Fourier domain: Input image was flipped
-    Object domain: Background of 2500 counts was subtracted.
-    Object domain: Input and watershed images were padded to  2000 X 2000 pixels.
-    Object domain: Image centred. Apodization filter was applied. Linear pixel size is  0.0 nm
-    Object domain: Input image shape is  2000 X 2000
-    Object domain: Image was resampled and its current shape is (1000, 1000)
-    Object domain: Image was resampled with the downsampling ratio = 2.0 and zero-padded to npixels_final X npixels_final= 2212 X 2212 pixels
-    Fourier domain: Input image was padded to  2212 X 2212 pixels and centred.
-    Fourier domain: Background of 2000 counts has been subtracted.
-    Fourier domain: Energy =  562747856181102.9
-    Energy in object's domain * total number of pixels:  562747856181103.2
-    Fourier domain: Image was renormalised. Parseval's theorem is fulfilled.
-    Object domain: Image was saved in tif file under  /Users/Pavel/Documents/repos/PhaseRetrieval/docs/data/Ntot2000rsnoise2500ksnoise2000_rs35_amplitude.tif
-    Object domain: Metadata was saved in csv file under  /Users/Pavel/Documents/repos/PhaseRetrieval/docs/data/Ntot2000rsnoise2500ksnoise2000_rs35_amplitude.csv
-    Fourier domain: Image was saved in tif file under  /Users/Pavel/Documents/repos/PhaseRetrieval/docs/data/Ntot2000rsnoise2500ksnoise2000_ks35_amplitude.tif
-    Fourier domain: Metadata was saved in csv file under  /Users/Pavel/Documents/repos/PhaseRetrieval/docs/data/Ntot2000rsnoise2500ksnoise2000_ks35_amplitude.csv
-    Image processing completed.
-
-
 > Plot the result for the last data set
 
 ### Step 2: Apply Gerchberg-Saxton algorithm with extrapolation to the processed images
@@ -1427,69 +1199,8 @@ preprocessing_script(datapath = datapath,
 
 ```python
 from PhaseRetrieval.scripts.scripts import gerchberg_saxton_extrapolation_script
-print(gerchberg_saxton_extrapolation_script.__doc__)
+#print(gerchberg_saxton_extrapolation_script.__doc__)
 ```
-
-    
-        Script to launch GS algorithm with extrapolation and save reconstructed images.
-        Customized for the case when image are saved in several folders (e.g. each containing images with different parameters)
-        Reconstructed images are saved as csv (no metadata) in individual folders containing images of the same kind (e.g. equal number of pixels)
-        ---
-        Parameters
-        ---
-        files_extension: {"*.tif", "*.csv"}
-            Extension of raw images.
-            Must be chosen from the given set of extensions, i.e. either "*.tif" or "*.csv".
-            Default is "*.tif".
-        ---Initialisation of PhaseRetrieval class-related:---
-        datapath: str
-            Path used to load data (the same as used to load raw data).
-            Default is None.
-        rs_prefix: str
-            Prefix common to names of the files containing object-domain images.
-            Default is None.
-        ks_filename: str
-            Prefix common to names of the files containing Fourier-domain images.
-            Default is None.
-        ---
-        ---PhaseRetrieval.gerchberg_saxton_extrapolation method-related:---
-        gs_steps: int
-            Number of iterations in GS algorithm
-            Default is None.
-        plot_progress : bool, optional
-            False will prevent algorithm from plotting the progress.
-            True will plot the progress of the algorithm.
-            Default is False.
-        plot_every_kth_iteration : int, optional
-            Plot the progress each k-th iteration, where k=plot_every_kth_iteration
-            Default is 1.
-        zoom: int, optional
-            Zoom factor to zoom into the 2D plot
-            Default is 1 (no zoom)
-        ---
-        ---PhaseRetrieval.save_as_tif method-related:---
-        Fourier_amplitude : bool, optional
-            If set to True, constrained Fourier amplitude will be saved
-            Default is True
-        Fourier_phase : bool, optional
-            If set to True, constrained(=computed) Fourier phase will be saved
-            Default is True
-        object_amplitude : bool, optional
-            If set to True, computed object amplitude will be saved
-            Default is True
-        object_phase : bool, optional
-            If set to True, computed object phase will be saved
-            Default is True
-        ---
-        rec_number : int, optional
-            Number of times the algorithm is run with random initial phases = number of reconstructions
-            Default is 1.
-        print_progress : bool, optional
-            False will block print calls.
-            True will let print calls to be displayed.
-            Default is False.
-        
-
 
 
 ```python
@@ -1509,70 +1220,6 @@ gerchberg_saxton_extrapolation_script(datapath = datapath,
                                    rec_number = 2,
                                    print_progress = True)
 ```
-
-    /Users/Pavel/Documents/repos/PhaseRetrieval/docs/data/Ntot2000rsnoise2500ksnoise1900_rs35_amplitude.tif
-    Ntot2000rsnoise2500ksnoise1900_rs35_amplitude.tif
-    Ntot2000rsnoise2500ksnoise1900_rs35_amplitude
-    file type is tif
-    object-domain data were read as  /Users/Pavel/Documents/repos/PhaseRetrieval/docs/data/Ntot2000rsnoise2500ksnoise1900_rs35_amplitude.tif
-    
-    object-domain metadata were read as  /Users/Pavel/Documents/repos/PhaseRetrieval/docs/data/Ntot2000rsnoise2500ksnoise1900_rs35_amplitude.csv
-    
-    file type is tif
-    Fourier-domain data were read as  /Users/Pavel/Documents/repos/PhaseRetrieval/docs/data/Ntot2000rsnoise2500ksnoise1900_ks35_amplitude.tif
-    
-    Iteration 1 
-      completed 
-    Iteration 2 
-      completed 
-    Iteration 3 
-      completed 
-    Fourier amplitude saved as  rs35_ks35__Fourier_amplitude_102546000_20201007_171534.csv
-    Fourier phase saved as  rs35_ks35__Fourier_phase_102546000_20201007_171534.csv
-    object amplitude saved as  rs35_ks35__object_amplitude_102546000_20201007_171534.csv
-    object phase saved as  rs35_ks35__object_phase_102546000_20201007_171534.csv
-    Iteration 1 
-      completed 
-    Iteration 2 
-      completed 
-    Iteration 3 
-      completed 
-    Fourier amplitude saved as  rs35_ks35__Fourier_amplitude_102276000_20201007_171602.csv
-    Fourier phase saved as  rs35_ks35__Fourier_phase_102276000_20201007_171602.csv
-    object amplitude saved as  rs35_ks35__object_amplitude_102276000_20201007_171602.csv
-    object phase saved as  rs35_ks35__object_phase_102276000_20201007_171602.csv
-    /Users/Pavel/Documents/repos/PhaseRetrieval/docs/data/Ntot2000rsnoise2500ksnoise2000_rs35_amplitude.tif
-    Ntot2000rsnoise2500ksnoise2000_rs35_amplitude.tif
-    Ntot2000rsnoise2500ksnoise2000_rs35_amplitude
-    file type is tif
-    object-domain data were read as  /Users/Pavel/Documents/repos/PhaseRetrieval/docs/data/Ntot2000rsnoise2500ksnoise2000_rs35_amplitude.tif
-    
-    object-domain metadata were read as  /Users/Pavel/Documents/repos/PhaseRetrieval/docs/data/Ntot2000rsnoise2500ksnoise2000_rs35_amplitude.csv
-    
-    file type is tif
-    Fourier-domain data were read as  /Users/Pavel/Documents/repos/PhaseRetrieval/docs/data/Ntot2000rsnoise2500ksnoise2000_ks35_amplitude.tif
-    
-    Iteration 1 
-      completed 
-    Iteration 2 
-      completed 
-    Iteration 3 
-      completed 
-    Fourier amplitude saved as  rs35_ks35__Fourier_amplitude_102208000_20201007_171632.csv
-    Fourier phase saved as  rs35_ks35__Fourier_phase_102208000_20201007_171632.csv
-    object amplitude saved as  rs35_ks35__object_amplitude_102208000_20201007_171632.csv
-    object phase saved as  rs35_ks35__object_phase_102208000_20201007_171632.csv
-    Iteration 1 
-      completed 
-    Iteration 2 
-      completed 
-    Iteration 3 
-      completed 
-    Fourier amplitude saved as  rs35_ks35__Fourier_amplitude_102257000_20201007_171707.csv
-    Fourier phase saved as  rs35_ks35__Fourier_phase_102257000_20201007_171707.csv
-    object amplitude saved as  rs35_ks35__object_amplitude_102257000_20201007_171707.csv
-    object phase saved as  rs35_ks35__object_phase_102257000_20201007_171707.csv
-
 
 For each type of the processed images (i.e. images having the same linear number of pixels and the level of subtracted noise), ```gerchberg_saxton_extrapolation_script```generates a directory, in which it copies the corresponding object- and Fourier-domain images and saves reconstructed distributions. The output file structure under ```datapath``` looks as follows:
 
@@ -1672,14 +1319,6 @@ phase_alignment_gerchberg_saxton_script(datapath = datapath,
 
 
 ```python
-print(os.listdir(datapath))
-```
-
-    ['.DS_Store', 'ks35.csv', 'Ntot2000rsnoise2500ksnoise1900_ks35_amplitude.csv', 'Ntot2000rsnoise2500ksnoise1900_ks35_amplitude.tif', 'Ntot2000rsnoise2500ksnoise1900_rs35_amplitude', 'Ntot2000rsnoise2500ksnoise1900_rs35_amplitude.csv', 'Ntot2000rsnoise2500ksnoise1900_rs35_amplitude.tif', 'Ntot2000rsnoise2500ksnoise2000_ks35_amplitude.csv', 'Ntot2000rsnoise2500ksnoise2000_ks35_amplitude.tif', 'Ntot2000rsnoise2500ksnoise2000_rs35_amplitude', 'Ntot2000rsnoise2500ksnoise2000_rs35_amplitude.csv', 'Ntot2000rsnoise2500ksnoise2000_rs35_amplitude.tif', 'rs35.csv']
-
-
-
-```python
 import os
 from PhaseRetrieval.modules.postprocessing import plot_reconstruction
 
@@ -1699,14 +1338,14 @@ for amplitude_filename, phase_filename in zip(amplitude_filenames, phase_filenam
 
 
 
-![png](PhaseRetrieval_files/PhaseRetrieval_156_1.png)
+![png](PhaseRetrieval_files/PhaseRetrieval_155_1.png)
 
 
     /Users/Pavel/Documents/repos/PhaseRetrieval/docs/data/Ntot2000rsnoise2500ksnoise1900_rs35_amplitude.tif
 
 
 
-![png](PhaseRetrieval_files/PhaseRetrieval_156_3.png)
+![png](PhaseRetrieval_files/PhaseRetrieval_155_3.png)
 
 
     /Users/Pavel/Documents/repos/PhaseRetrieval/docs/data/Ntot2000rsnoise2500ksnoise2000_rs35_amplitude.tif
