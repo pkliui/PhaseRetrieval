@@ -1,6 +1,6 @@
 # PhaseRetrieval: framework for solution of the phase problem.
 
-Author: Dr. Pavel Kliuiev
+Author: Pavel Kliuiev
 
 PhaseRetrieval is a Python-based framework for solution of the phase problem widely encountered in optics. The framework incorporates the full workflow for phase retrieval: image pre-processing, reconstruction of images by phase retrieval algorithms and post-processing of reconstructed images (such as image registration).
 
@@ -33,7 +33,7 @@ Currently there are the following sub-packages available:
    
    * ```tests```  : unit tests
    
-For a detailed user guide see online documentation: https://pkliui.github.io/PhaseRetrieval/
+For a detailed user guide see [online documentation](https://github.com/pkliui/PhaseRetrieval/blob/master/docs/PhaseRetrieval.md)
 
 
 ```python
